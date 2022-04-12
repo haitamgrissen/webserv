@@ -1,0 +1,2 @@
+gcc *.cpp -o webserv 
+
