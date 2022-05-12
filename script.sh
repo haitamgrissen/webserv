@@ -1,2 +1,2 @@
-gcc *.cpp -o webserv 
+clang++ srcs/*.cpp  -o webserv 
 

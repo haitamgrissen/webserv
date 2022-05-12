@@ -1,5 +1,5 @@
-#ifndef SOCKET_HPP
-# define SOCKET_HPP
+// #ifndef SOCKET_HPP
+// # define SOCKET_HPP
 
 # include <iostream>
 # include <string>
@@ -12,20 +12,22 @@ namespace webserv
 	{
 
 		public:
-
+			Socket();
 			Socket(int domain, int service, int protocol);
 			Socket( Socket const & src );
 			~Socket();
 
 			Socket &		operator=( Socket const & rhs );
 
+			int				getConnection() const ;
+			void			setConnection(int domain, int service, int protocol);
+
 		private:
-		int		fd;
-		int 	connection;
+			int 	connection;
 
 	};
 
 	std::ostream &			operator<<( std::ostream & o, Socket const & i );
 
 }
-#endif /* ********************************************************** SOCKET_H */
+// #endif /* ********************************************************** SOCKET_H */
