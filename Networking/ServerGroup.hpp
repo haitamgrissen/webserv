@@ -44,6 +44,7 @@ class ServerGroup
 
 
 	fd_set							_masterfds;
+	fd_set							_masterwritefds;
 	unsigned int					_fd_size;
 	unsigned int					_fd_cap;
 
@@ -60,6 +61,7 @@ class ServerGroup
 
 
 	//exceptions
+	
 	struct BuildException : public std::exception 
 	{
    		const char * what () const throw () 

@@ -56,6 +56,7 @@ void					ServerGroup::build()
 	//TODO:
 
 	FD_ZERO(&_masterfds);
+	FD_ZERO(&_masterwritefds);
 	_fd_size = _hostslist.size();
 	_servercount = _fd_size;
 	_fd_cap = 0;
@@ -91,11 +92,11 @@ void					ServerGroup::start()
 	while (true)
 	{
 		_readset = _masterfds;
-
-		if (select((int)_fd_cap + 1, &_readset, &_writeset, NULL, &timetostop) < 0)
+		_writeset = _masterwritefds;
+		if (select((int)_fd_cap + 1, &_readset, &_writeset, NULL, NULL) < 0)
 			throw SelectException();
 
-		for (size_t i = 0; i <_fd_cap + 1; i++)
+		for (size_t i = 0; i < _fd_cap + 1; i++)
 		{
 			
 			if (FD_ISSET(i, &_writeset) || FD_ISSET(i, &_readset))
@@ -104,23 +105,60 @@ void					ServerGroup::start()
 				{
 					//accept connection
 					int new_socket = acceptCon(i); 
-					std::cout << "connection is accepted" << std::endl;
-					if (i > _fd_cap)
-						_fd_cap = i;
-					char buffer[30000] = {0};
-        			read( new_socket , buffer, 30000);
-					char *hello = strdup("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!");
-        			write(new_socket , hello , strlen(hello));
+					std::cout << "connection is accepted :" << new_socket << std::endl;
+					FD_SET(new_socket, &_masterfds);
+					if (new_socket > _fd_cap)
+						_fd_cap = new_socket;
+
+					
 				}
 				else
 				{
 					if (FD_ISSET(i, &_readset)) //coonection is to be read from
 					{
-					 	//read from connected socket
+						int ret ; 
+						//read from connected socket
+						char buffer[30000];
+							// printf("[%s]÷\n", buffer);
+        				ret = read( i , buffer, sizeof(buffer)); //3000
+						/*
+							if (is first)
+								request (buffer)
+							else 
+								request.append(buffer);
+
+								if (request.ifFinshed())
+						*/
+						std::cout << "Read :" << ret << " " << i  << std::endl;
+						if (ret == 0 || ret == -1)
+						{
+							if (ret  == 0)
+							{
+								std::cout << "Connection Closed form client" << std::endl;
+								close(i);
+							FD_CLR(i , &_masterfds);
+
+							}
+							else 
+								perror("in read");
+							//exit(1);
+						}
+						else
+						{
+							FD_CLR(i, & _masterfds);
+							FD_SET(i, & _masterwritefds);
+						}
 					}
 					else if (FD_ISSET(i, &_writeset)) // connection is ready to be written to
 					{
-						//read from connected socket
+						//write to connected socket
+						std::cout << "SENT RESPONSE\n";
+						char *hello = strdup("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 15\n\nmalaoui dzab!!!");
+        				write(i , hello , strlen(hello));
+						//buufet 
+						FD_CLR(i, & _masterwritefds);
+
+						close(i);
 					}
 				}
 			}
@@ -147,7 +185,6 @@ int		ServerGroup::acceptCon(int fd)
 
 	if (newsocket < 0)
 		throw AcceptException();
-	FD_SET(newsocket, &_readset);
 	_client_fds.push_back(newsocket);
 	return newsocket;
 }

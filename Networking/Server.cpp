@@ -12,29 +12,17 @@ int Server::Create()
 {
 	_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (_fd < 0)
-	{
-		std::cout << "Error creating server Socket" << std::endl;
-		exit(0);
-	}
-	
+		throw SocketException();
+		fcntl(_fd, F_SETFL, O_NONBLOCK);
 
 	if (bind(_fd, (struct sockaddr * ) &_addr, sizeof(_addr)) == -1)
-	{
-		std::cout << "Error IN Bind " << std::endl;
-		exit(0);
-	}
+		throw BindException();
+	
 	if (listen(_fd, 10000) < 0)
-	{
-		std::cout << "Error IN listen" << std::endl;
-		exit(0);
-	}
+		throw ListenException();
 
 
-	//std::cout << "server fd : " << _fd << std::endl;
-	std::cout <<  "host : " << _hoststring << " IP : " << _host << " port : " << _port << " is up"  << std::endl;
-	std::cout << "++++++++" << std::endl;
-	//std::cout << "server host : " << _hoststring << std::endl;
-	return 0;
+	return (0);
 }
 
 /*
@@ -46,7 +34,7 @@ int Server::SAcceptCon()
 	std::cout << "hello from accept§" << std::endl;
 	//int clnt = accept(_fd, (struct sockaddr * ) &_addr, sizeof(_addr));
 	int clnt;
-	if ((clnt = accept(_fd, (struct sockaddr *)&_addr, (socklen_t*)&_addrlen)) < 0)
+	if ((clnt = ::accept(_fd, (struct sockaddr *)&_addr, (socklen_t*)&_addrlen)) < 0)
     {
         perror("In accept");
         exit(EXIT_FAILURE);
@@ -63,7 +51,7 @@ int Server::SAcceptCon()
 	void 	Server::setSocket(std::string hoststring, int port)
 	{
 		//TODO: change to network/host EQUIVALENT
-		_port = htons(port);
+		_port = port;//htons(port);
 		_host = inet_addr(hoststring.c_str());
 		_hoststring = hoststring;
 		setAddress();
@@ -73,8 +61,9 @@ int Server::SAcceptCon()
 	{
 		memset((char *)&_addr, 0, sizeof(_addr)); 
     	_addr.sin_family = AF_INET;
-    	_addr.sin_port =  htons(8880);//htons(_port);
-    	_addr.sin_addr.s_addr = INADDR_ANY;//_host;//htonl(_host);
+    	_addr.sin_port =  htons(_port);//htons(_port);
+		std::cout << _host << std::endl;
+    	_addr.sin_addr.s_addr = _host;//INADDR_ANY;//_host;//htonl(_host);0.0.0.0 127.0.0.1
 		_addrlen = sizeof(_addr);
 	}
 

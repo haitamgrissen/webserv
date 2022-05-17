@@ -12,8 +12,8 @@ class DebugWS
     std::vector<int> getServerPorts()
     {
         std::vector<int> tmp;
-        tmp.push_back(7331);
-        // tmp.push_back(8080);
+        tmp.push_back(7333);
+        tmp.push_back(8083);
         // tmp.push_back(4430);
         return tmp;
     }
@@ -22,7 +22,7 @@ class DebugWS
     {
         std::vector<std::string> tmp;
         tmp.push_back("127.0.0.1");
-        // tmp.push_back("127.0.0.5");
+        tmp.push_back("10.12.2.12");
         // tmp.push_back("127.0.0.50");
         return tmp;
     }

@@ -14,9 +14,9 @@ class Server
 
 
 		//NETWORK I/O
-
+		int		accept();
 		int		send();
-		int	recv();
+		int		recv();
 
 		//ACCESSORS
 		void 	setSocket(std::string host, int port);
@@ -37,8 +37,6 @@ class Server
 		//std::vector<> of responses
 
 		int							_fd;
-
-
 		//socket elements
 		int							_port;
 		unsigned int 				_host;
@@ -48,6 +46,32 @@ class Server
 
 		struct sockaddr_in			_addr;
 		int _addrlen;
+
+
+
+
+
+	struct SocketException : public std::exception 
+	{
+   		const char * what () const throw () 
+		{
+      		return "Error creating server Socket";
+   		}
+	};
+	struct BindException : public std::exception 
+	{
+   		const char * what () const throw () 
+		{
+      		return "Error IN Bind";
+   		}
+	};
+	struct ListenException : public std::exception 
+	{
+   		const char * what () const throw () 
+		{
+      		return "Error IN listen";
+   		}
+	};
     
 };
 
