@@ -1,0 +1,43 @@
+Server
+{
+    listen             127.0.0.1 8080
+    root             ./root 
+    allow_methods      GET POST 
+
+    upload_path        /somewhere/ 
+
+    index index.html index.php 
+     
+    error_page      404 ./error_pages/404.html
+    error_page      405 /sdsd/dsdsd/405.html
+    autoindex off
+
+    redirection    /doooooxsxvasvf /test/
+    
+    
+
+
+    location /HTTP/PATH03/index.html
+    {
+        root .
+        autoindex on
+        allow_methods GET  POST
+    }
+    
+
+    location /users
+    {
+        root ./root/univers/user
+        autoindex on
+        allow_methods GET  POST
+    } 
+    cgi .php
+    {
+        allow_methods      POST
+        cgi_path         /Volumes/SPYDERSY/webserv/cgi-bin/php-cgi
+    }
+
+    client_max_body_size 2345
+}
+
+

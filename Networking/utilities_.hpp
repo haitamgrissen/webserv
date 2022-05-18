@@ -29,7 +29,40 @@
 # include <netinet/in.h>
 
 
+#include <stdio.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <list>
+#include <map>
+#include <string>
+#include <iterator>
+# include <iostream>
+# include <unistd.h>
+# include <sstream>
+# include <fstream>
+# include <string>
+# include <vector>
+# include <map>
+# include <poll.h>
+# include <algorithm>
+# include <sys/stat.h>
+# include <fcntl.h>
 
 
 
+
+
+#define PORT 8089
 ///DEFINES

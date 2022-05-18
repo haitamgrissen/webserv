@@ -4,7 +4,8 @@
 #include "utilities_.hpp"
 #include "Server.hpp"
 #include "DEBUGWS.hpp"
-
+#include "../HTTP/HttpRequest.hpp"
+#include "../HTTP/Response.hpp"
 
 class ServerGroup
 {
