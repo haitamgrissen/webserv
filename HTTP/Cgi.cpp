@@ -32,6 +32,11 @@ std::string                             Cgi::get_cgi_path(void)
     return this->cgi_path;
 }
 
+std::string                             Cgi::get_cgi_block_path(void)
+{
+    return this->cgi_block_path;
+}
+
 std::vector <std::string>               Cgi::get_allow_methods(void)
 {
     for(int i = 0; i < this->Cgi_Allow_methods.size(); i++)

@@ -4,9 +4,12 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-ServerGroup::ServerGroup()//TODO: add config file as parameter
+ServerGroup::ServerGroup(char *configfile)
 {
-	//TODO: get config file data and pass it to build function
+	std::string mystring(configfile);
+	_ok.parse_server(mystring);
+	my_confs = _ok.get_server();
+
 
 }
 
@@ -50,30 +53,31 @@ std::ostream &			operator<<( std::ostream & o, ServerGroup const & i )
 
 void					ServerGroup::build()
 {
-	//TODO:  get_allserver_sockets, replace with config file parsing equivalent
-	_portslist = Debugging.getServerPorts();
-	_hostslist = Debugging.getServerHosts();
-	//TODO:
+
 
 	FD_ZERO(&_masterfds);
 	FD_ZERO(&_masterwritefds);
-	_fd_size = _hostslist.size();
+	_fd_size = my_confs.size();
 	_servercount = _fd_size;
 	_fd_cap = 0;
 
 	//loop over all server_sockets create and  fill the _servers map
-	for (int i = 0; i < _portslist.size(); i++)
+	for (int i = 0; i < _servercount; i++)
 	{
-		Server		currentsrv;
+		Server		*currentsrv = new Server();
 		int			fd;
-		currentsrv.setSocket(_hostslist[i], _portslist[i]);
-		if (currentsrv.Create() != -1)
+
+		std::string host = my_confs[i].get_host();
+		int port = my_confs[i].get_Port();
+
+		currentsrv->setSocket(host, port);
+		if (currentsrv->Create() != -1)
 		{
-			fd = currentsrv.getsocketfd();
+			fd = currentsrv->getsocketfd();
 			FD_SET(fd, &_masterfds);
 			_servers_map.insert(std::make_pair(fd, currentsrv));
-			
-			_servers_vec.push_back(currentsrv);
+			currentsrv->setIndex(i);	
+			//_servers_vec.push_back(currentsrv);
 
 			if (fd > _fd_cap)
 				_fd_cap = fd;
@@ -88,16 +92,6 @@ void					ServerGroup::start()
 	struct timeval	timetostop;
 	timetostop.tv_sec  = 1;
 	timetostop.tv_usec = 0;
-	
-
-
-	std::fstream    body_file;
-	size_t          body_size;
-	HttpRequest http;
-	std::ostringstream  body_stream;
-
-	body_size = 0;
-	body_file.open("body.txt", std::ios::out);
 
 	while (true)
 	{
@@ -114,95 +108,67 @@ void					ServerGroup::start()
 				if (isServerFD(i)) //check if the server fd is the one wich is ready if true accept client connection
 				{
 					//accept connection
-					int new_socket = acceptCon(i); 
-					std::cout << "connection is accepted :" << new_socket << std::endl;
+					std::map<int, Server *>::iterator it;
+					it = _servers_map.find(i);
+					if (it ==  _servers_map.end())
+					{
+						std::cout << "ERROR IN SERVERS MAP accept\n";
+						exit(EXIT_FAILURE);
+					}
+						//current server recv
+					
+					std::cout << "fd :" << it->second->getsocketfd() << "index :" << it->second->getIndex() << std::endl;
+					int new_socket = (it)->second->accept();
+					//int new_socket = acceptCon(i); 
+					std::cout << "connection is accepted : " << new_socket << std::endl;
 					FD_SET(new_socket, &_masterfds);
 					if (new_socket > _fd_cap)
 						_fd_cap = new_socket;
+
+					_client_fds.insert(std::make_pair(new_socket, it->second));
 				}
 				else
 				{
 					if (FD_ISSET(i, &_readset)) //coonection is to be read from
 					{
 						int flag;
-							
-						flag = http.handle_http_request(i, body_file, body_size, body_stream);
+						std::map<int, Server *>::iterator it;
+						it = _client_fds.find(i);
+						if (it == _client_fds.end())
+						{
+							std::cout << "ERROR IN SERVERS MAP request\n";
+							exit(EXIT_FAILURE);
+						}
+
+						flag = (it)->second->recv(i);
 						if (!flag)
 						{
 							FD_CLR(i, & _masterfds);
 							FD_SET(i, & _masterwritefds);
 						}
-						//exit(0);
 
 
-						// int ret ; 
-						// //read from connected socket
-						// char buffer[30000];
-						// 	// printf("[%s]÷\n", buffer);
-        				// ret = read( i , buffer, sizeof(buffer)); //3000
-						// /*
-						// 	if (is first)
-						// 		request (buffer)
-						// 	else 
-						// 		request.append(buffer);
-
-						// 		if (request.ifFinshed())
-						// */
-						// std::cout << "Read :" << ret << " " << i  << std::endl;
-						// if (ret == 0 || ret == -1)
-						// {
-						// 	if (ret  == 0)
-						// 	{
-						// 		std::cout << "Connection Closed form client" << std::endl;
-						// 		close(i);
-						// 	FD_CLR(i , &_masterfds);
-
-						// 	}
-						// 	else 
-						// 		perror("in read");
-						// 	//exit(1);
-						// }
-						// else
-						// {
-						// 	FD_CLR(i, & _masterfds);
-						// 	FD_SET(i, & _masterwritefds);
-						// }
 
 
 					}
 					else if (FD_ISSET(i, &_writeset)) // connection is ready to be written to
 					{
-						if (http.Get_Http_Method() == "POST")
+
+						std::map<int, Server *>::iterator it;
+						it = _client_fds.find(i);
+						if (it == _client_fds.end())
 						{
-							body_file << body_stream.str() << std::endl;
-							body_file.close();        
+							std::cout << "ERROR IN SERVERS MAP response\n";
+							exit(EXIT_FAILURE);
 						}
 
-						if (http.Get_Http_Method() == "POST" && http.get_value("Transfer-Encoding") == "chunked")
-						{
-							std::cout << "ok?" << std::endl;
-							http.handle_chunked_body();
-						}
-						Response ok;
-       					ok.set_mybuffer(http.Get_Request_Target());
-       					if (http.Get_Http_Method() == "GET")
-       					    body_size = ok.handle_Get_response();
-       					else if (http.Get_Http_Method() == "DELETE")
-       					    ok.handle_delete_response(http.get_value("Connection"));
-       					else if (http.Get_Http_Method() == "POST")
-       					    ok.handle_post_response(http.get_value("Connection"));
-						
-       					write(i , ok.get_hello() , ok.get_total_size());
+						(it)->second->send(i);
+
+						_client_fds.erase(it);
+
 						FD_CLR(i, & _masterwritefds);
        					close(i);
-						// //write to connected socket
-						// std::cout << "SENT RESPONSE\n";
-						// char *hello = strdup("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 16\n\nNizaaaaaaaaar!!!");
-        				// write(i , hello , strlen(hello));
-						// //buufet 
-						// FD_CLR(i, & _masterwritefds);
 
-						// close(i);
 					}
 				}
 			}
@@ -229,7 +195,7 @@ int		ServerGroup::acceptCon(int fd)
 
 	if (newsocket < 0)
 		throw AcceptException();
-	_client_fds.push_back(newsocket);
+	//_client_fds.push_back(newsocket);
 	return newsocket;
 }
 
@@ -248,7 +214,7 @@ int		ServerGroup::recvCon()
 
 bool	ServerGroup::isServerFD(int fd)
 {
-	std::map<int, Server>::iterator it = _servers_map.find(fd);
+	std::map<int, Server *>::iterator it = _servers_map.find(fd);
 
 	if (it == _servers_map.end())
 		return false;

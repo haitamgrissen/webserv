@@ -38,7 +38,7 @@ Servers::Servers(void)
 {
 }
 
-Servers::Servers(std::string name)
+void               Servers::parse_server(std::string name)
 {
     std::string     buff;
     int j;

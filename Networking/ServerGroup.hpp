@@ -6,13 +6,16 @@
 #include "DEBUGWS.hpp"
 #include "../HTTP/HttpRequest.hpp"
 #include "../HTTP/Response.hpp"
+#include "../HTTP/Servers.hpp"
+
+
 
 class ServerGroup
 {
 
 	public:
 
-		ServerGroup();
+		ServerGroup(char *configfile);
 		ServerGroup( ServerGroup const & src );
 		~ServerGroup();
 
@@ -32,13 +35,13 @@ class ServerGroup
 
 	private:
 
-	std::vector<std::string>	_hostslist;
-	std::vector<int>			_portslist;
-	std::map<int, Server>		_servers_map;
+	// std::vector<std::string>	_hostslist;
+	// std::vector<int>			_portslist;
+	std::map<int, Server *>			_client_fds;
+	std::map<int, Server *>			_servers_map;
 	std::vector<Server>				_servers_vec;
 
 
-	std::vector<int>			_client_fds;
 
 /////////////////////////////////////////////
 	int								_servercount;
@@ -57,6 +60,9 @@ class ServerGroup
 
 
 
+
+	Servers					_ok;
+	std::vector<Conf>       my_confs;
 
 
 

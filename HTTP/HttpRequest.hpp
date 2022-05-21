@@ -31,7 +31,7 @@ class HttpRequest
         std::string     Get_Protocol_Version(void);
         void            handle_chunked_body(void);
         void            handle_regular_body(void);
-        int            handle_http_request(int new_socket, std::fstream & body_file, size_t &body_size, std::ostringstream & body_stream);
+        int             handle_http_request(int new_socket, std::fstream & body_file, size_t &body_size, std::ostringstream & body_stream);
         void            get_request(std::string data, size_t & body_size, std::ostringstream & body_stream);
         void            list_map(void);
         std::string     get_value(std::string key);
@@ -40,5 +40,5 @@ class HttpRequest
         size_t          get_total_size(void);
         ~HttpRequest(void);
 };
-
-#endif 
+//body_file
+#endif

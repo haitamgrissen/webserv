@@ -18,6 +18,11 @@ void                                    Cgi::set_Listen(std::string c)
     this->Cgi_Listen = c;
 }
 
+void                                     Cgi::set_cgi_block_path(std::string c)
+{
+   this->cgi_block_path = c;
+}
+
 void                                     Cgi::set_root(std::string c)
 {
     this->Cgi_Root = c;

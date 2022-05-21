@@ -1,11 +1,7 @@
 {
     "files.associations": {
-        "locale": "cpp",
-        "__config": "c",
-        "iosfwd": "cpp",
-        "map": "cpp",
-        "memory": "cpp",
         "__bit_reference": "cpp",
+        "__config": "cpp",
         "__debug": "cpp",
         "__errc": "cpp",
         "__functional_base": "cpp",
@@ -44,17 +40,20 @@
         "initializer_list": "cpp",
         "iomanip": "cpp",
         "ios": "cpp",
+        "iosfwd": "cpp",
         "iostream": "cpp",
         "istream": "cpp",
         "iterator": "cpp",
         "limits": "cpp",
         "list": "cpp",
+        "locale": "cpp",
+        "map": "cpp",
+        "memory": "cpp",
         "mutex": "cpp",
         "new": "cpp",
         "optional": "cpp",
         "ostream": "cpp",
         "ratio": "cpp",
-        "set": "cpp",
         "sstream": "cpp",
         "stack": "cpp",
         "stdexcept": "cpp",
@@ -69,5 +68,4 @@
         "utility": "cpp",
         "vector": "cpp"
     }
-    
 }

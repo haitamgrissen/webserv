@@ -101,8 +101,8 @@ void                            Conf::parse_Cgi(std::vector <std::string> tokens
     std::vector <std::string>           index_it;
     std::map<int, std::string>          Cgi_error_page;
 
-    if (tokens[0] == "listen" && tokens.size() == 2)
-        a.set_Listen(tokens[1]);
+    if (tokens[0] == "cgi" && tokens.size() == 2)
+        a.set_cgi_block_path(tokens[1]);
     else if (tokens[0] == "root" && tokens.size() == 2)
         a.set_root(tokens[1]);
     else if (tokens[0] == "cgi_path" && tokens.size() == 2)

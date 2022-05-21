@@ -2,6 +2,8 @@
 # define SERVER_HPP
 
 #include "utilities_.hpp"
+#include "../HTTP/HttpRequest.hpp"
+#include "../HTTP/Response.hpp"
 
 class Server
 {
@@ -15,14 +17,19 @@ class Server
 
 		//NETWORK I/O
 		int		accept();
-		int		send();
-		int		recv();
+		int		send(int sock);
+		int		recv(int sock);
 
 		//ACCESSORS
 		void 	setSocket(std::string host, int port);
 		int		getsocketfd();
 		void	setAddress();
 		
+
+
+		void		setIndex(int i);
+		int			getIndex();
+
 
 
 		//CONSTRUCTORS AND OVERLOADS
@@ -47,17 +54,38 @@ class Server
 		struct sockaddr_in			_addr;
 		int _addrlen;
 
+		//HTTP
+		class				_body
+		{
+			public :
+				_body()
+				{
+					_body_file.open("body.txt", std::ios::out);
+					_body_size = 0;
+				}
+				~_body() {}
+				HttpRequest			_http;
+				std::ostringstream  _body_stream;
+				std::fstream    	_body_file;
+				size_t          	_body_size;
+		};
+
+		std::vector<HttpRequest>	_requestlist;
+		std::map<int, _body *>	_requestmap;
 
 
 
+		int					_index;
 
-	struct SocketException : public std::exception 
+
+	struct SocketException : public std::exception
 	{
    		const char * what () const throw () 
 		{
       		return "Error creating server Socket";
    		}
 	};
+
 	struct BindException : public std::exception 
 	{
    		const char * what () const throw () 
@@ -65,6 +93,7 @@ class Server
       		return "Error IN Bind";
    		}
 	};
+
 	struct ListenException : public std::exception 
 	{
    		const char * what () const throw () 

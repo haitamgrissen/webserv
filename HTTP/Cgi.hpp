@@ -21,6 +21,7 @@ class Cgi
         int                                 Cgi_client_max_body_size;
         bool                                Cgi_autoindex;
         std::string                         cgi_path;
+        std::string                         cgi_block_path;
         
     public:
         Cgi(void);
@@ -32,8 +33,11 @@ class Cgi
         std::map<std::string, std::string>      get_redirection(void);
         int                                     get_client_max_body_size(void);
         std::string                             get_cgi_path(void);
+        std::string                             get_cgi_block_path(void);
         bool                                    get_autoindex();
+
         void                                    set_Listen(std::string c);
+        void                                    set_cgi_block_path(std::string c);
         void                                    set_root(std::string c);
         void                                    set_cgi_path(std::string c);
         void                                    set_allow_methods(std::vector <std::string> c);

@@ -1,0 +1,79 @@
+How to work with servers 
+
+
+                                    #FOR_FIIIBOOOO
+
+Step1 : 
+            Servers ok;
+
+            ok.parse_server("HTTP/conf");
+
+Step2:
+            Conf                    my_conf; #JUST ONE AND ONLY CONF 
+            std::vector<Conf>       my_confs;  #A VECTOR OF CONFS (MULTIPLES - MORE THAN ONE)
+
+            my_confs = ok.get_server();
+            my_conf = my_confs[0]; #or you could use index like my_confs[i] 
+
+STEP3:
+        Any variable within the conf file has its own #GETTERS adn #SETTERS
+        For example:
+                 
+                to access the #HOST of #SERVER number 0  :
+                            std::string my_host = my_conf.get_host();
+                to access the #PORT of #SERVER number 0 :
+                            int         my_port = my_conf.get_port();
+        
+
+
+                                    #FOR_AYOOOUB
+
+#HOW_to_ACCESS_cgi_vars:
+
+Step1 : 
+            Servers ok;
+
+            ok.parse_server("HTTP/conf");
+
+Step2:
+            Conf                    my_conf; #JUST ONE AND ONLY CONF 
+            std::vector<Conf>       my_confs;  #A VECTOR OF CONFS (MULTIPLES - MORE THAN ONE)
+
+            my_confs = ok.get_server();
+            my_conf = my_confs[0]; #or you could use index like my_confs[i] 
+
+STEP3:
+        Any variable within the conf file has its own #GETTERS adn #SETTERS
+        For example:
+                 
+                to access the #CGI_block of #SERVER number 0  :
+                        Cgi                     my_cgi; #JUST ONE AND ONLY CGI 
+                        std::vector<Cgi>        my_cgis;  #A VECTOR OF CGIS (MULTIPLES - MORE THAN ONE)
+
+                my_cgis = my_conf.get_cgi();        #this_will_give_you_a_vector_of_CGI
+                my_cgi  = my_cgis[0];               #this_will_give_you_cgi_number_0
+
+
+STEP4:
+        EXAMPLE of #CGI block :
+
+            cgi .php ------> #cgi_block_path
+            {
+                allow_methods      POST #cgi_method
+                cgi_path         /Volumes/SPYDERSY/webserv/cgi-bin/php-cgi #cgi_path
+            }
+
+
+STEP5:
+
+        How to access #CGI variables : 
+
+            #cgi_block_path : 
+
+                    std::string               my_cgi_block_path = my_cgi.get_cgi_block_path();
+
+                    std::string               my_cgi_path       = my_cgi.get_cgi_path();
+                    std::vector <std::string> my_cgi_methods    = my_cgi.get_allow_methods(); #this_is_a_vector_of_methods
+                    std::string               my_cgi_method     = my_cgi_methods[0];          #this_is_method_number_0 #POST_in_our_example_above
+
+
