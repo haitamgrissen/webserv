@@ -15,6 +15,11 @@ std::string                             Conf::get_root(void)
     return this->Root;
 }
 
+int                                     Conf::get_location_count(void)
+{
+    return this->location_count;
+}
+
 std::string                             Conf::get_error(int c)
 {
     std::map<int, std::string> errors;

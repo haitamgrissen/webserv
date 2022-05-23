@@ -59,6 +59,8 @@ void                            Conf::parse_location(std::vector <std::string> t
     std::map<int, std::string>          location_error_page;
 
     if (tokens[0] == "location" && tokens.size() == 2)
+        this->location_count++;
+    else if (tokens[0] == "path" && tokens.size() == 2)
         a.set_location_path(tokens[1]);
     else if (tokens[0] == "listen" && tokens.size() == 2)
         a.set_Listen(tokens[1]);

@@ -109,27 +109,15 @@ void            HttpRequest::parse_line(std::string buff)
 
 void            HttpRequest::handle_regular_body(void)
 {
-    std::ifstream file_2("tmp.txt");
+    std::ifstream   file_2("body.txt");
     std::fstream    result_file;
     std::string     str;
-    int             body_flag = 0;
-    int hex_flag = 0;
-    int chunk_size = 0;
-    int count_size = 0;
-    std::string result = "";
-    std::string file_type;
+    std::string     file_type;
 
-    std::fstream    out_file;
     file_type = this->get_file_type();
-    out_file.open("my_res", std::ios::out);
     result_file.open("res" + file_type, std::ios::out);
     while(getline(file_2, str))
-    {
-        if (body_flag)
-            result_file << str + "\n";   
-        if (str == "\r")
-            body_flag = 1;  
-    }
+        result_file << str + "\n";   
 }
 
 std::string     HttpRequest::get_file_type(void)
@@ -264,7 +252,7 @@ void            HttpRequest::get_request(std::string data, size_t & body_size, s
 
 int            HttpRequest::handle_http_request(int new_socket, std::fstream & body_file, size_t &body_size, std::ostringstream & body_stream)
 {
-   // std::fstream    body_file;
+   //std::fstream    body_filee;
     //size_t          body_size;
     std::string     data;
     int             valread;
@@ -273,7 +261,7 @@ int            HttpRequest::handle_http_request(int new_socket, std::fstream & b
 
     data = "";
     //body_size = 0;
-    //body_file.open("body.txt", std::ios::out);
+    //body_filee.open("bodyy.txt", std::ios::out);
     // while(1)
     // {
         valread = read( new_socket , buffer, 3000);
@@ -288,15 +276,19 @@ int            HttpRequest::handle_http_request(int new_socket, std::fstream & b
         }
         else if (this->Http_Method == "POST")
         {     
+            //std::cout << " here " << std::endl;
             body_size += valread;
             if (this->tranfer_encoding != "" && data.find("0\r\n\r\n") != std::string::npos)
             {
-                body_stream << data << std::endl; 
+                body_stream << data << std::endl;
+                //body_filee << body_stream.str() << std::endl;
+                 //std::cout << "landed here " << std::endl;
                 return 0;
             }
             else if (this->content_length == body_size - 1)
             {
                 body_stream << data << std::endl; 
+                
                 return 0 ;
             }
             body_stream << data;  

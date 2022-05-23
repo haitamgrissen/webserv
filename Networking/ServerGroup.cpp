@@ -136,7 +136,7 @@ void					ServerGroup::start()
 						it = _client_fds.find(i);
 						if (it == _client_fds.end())
 						{
-							std::cout << "ERROR IN SERVERS MAP request\n";
+							std::cout << "ERROR IN SERVERS Client MAP\n";
 							exit(EXIT_FAILURE);
 						}
 
@@ -146,10 +146,6 @@ void					ServerGroup::start()
 							FD_CLR(i, & _masterfds);
 							FD_SET(i, & _masterwritefds);
 						}
-
-
-
-
 					}
 					else if (FD_ISSET(i, &_writeset)) // connection is ready to be written to
 					{
@@ -161,13 +157,16 @@ void					ServerGroup::start()
 							std::cout << "ERROR IN SERVERS MAP response\n";
 							exit(EXIT_FAILURE);
 						}
+						int flag;
+						flag = (it)->second->send(i);
 
-						(it)->second->send(i);
+						if (flag == 0)
+						{
+							_client_fds.erase(it);
+							FD_CLR(i, & _masterwritefds);
+       						close(i);
+						}
 
-						_client_fds.erase(it);
-
-						FD_CLR(i, & _masterwritefds);
-       					close(i);
 
 					}
 				}

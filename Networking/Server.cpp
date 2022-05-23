@@ -46,51 +46,89 @@ int		Server::accept()
 	fcntl(clnt, F_SETFL, O_NONBLOCK);
 
 	_requestmap.insert(std::make_pair(clnt, new _body()));
+
 	return (clnt);
 }
 
 int		Server::send(int sock)
 {
 	std::map<int, _body *>::iterator	it;
+
 	it = _requestmap.find(sock);
-	_body *bd = it->second;
+	if (it == _requestmap.end())
+	{
+		std::cout << "ERROR IN Request MAP\n";
+		exit(EXIT_FAILURE);
+	}
+
+
+	_body *bd;
+
+	bd = it->second;
+	
+	
 
 	if (bd->_http.Get_Http_Method() == "POST")
 	{
 		bd->_body_file << bd->_body_stream.str() << std::endl;
 		bd->_body_file.close();        
 	}
-
 	if (bd->_http.Get_Http_Method() == "POST" && bd->_http.get_value("Transfer-Encoding") == "chunked")
-	{
-		std::cout << "ok?" << std::endl;
 		bd->_http.handle_chunked_body();
-	}
 	else if (bd->_http.Get_Http_Method() == "POST")
 		bd->_http.handle_regular_body();
 
 
-	Response ok;
-	ok.setIndex(_index);
-	ok.set_mybuffer(bd->_http.Get_Request_Target());
-	if (bd->_http.Get_Http_Method() == "GET")
-	    bd->_body_size = ok.handle_Get_response();
-	else if (bd->_http.Get_Http_Method() == "DELETE")
-	    ok.handle_delete_response(bd->_http.get_value("Connection"));
-	else if (bd->_http.Get_Http_Method() == "POST")
-	    ok.handle_post_response(bd->_http.get_value("Connection"));
-	
-	write(sock , ok.get_hello() , ok.get_total_size());
 
 
 
-	_requestmap.erase(it);
-	return 0;
+
+	if (it->second->_startedwrite == false)
+	{
+		it->second->_startedwrite = true;
+	}
+
+
+
+	bd->_ok.setIndex(_index);
+	std::string	error_msg;
+	bd->_ok.set_request_method(bd->_http.Get_Http_Method());
+	bd->_ok.set_request_target(bd->_http.Get_Request_Target());
+
+
+	bd->_ok.set_mybuffer(bd->_http.Get_Request_Target());
+
+	bd->_ok.check_file();
+	error_msg = bd->_ok.parsing_check();
+
+	if (error_msg != "")
+		bd->_ok.error_handling(error_msg);
+	else
+	{
+		if (bd->_http.Get_Http_Method() == "GET")
+			bd->_body_size = bd->_ok.handle_Get_response();
+		else if (bd->_http.Get_Http_Method() == "DELETE")
+			bd->_ok.handle_delete_response(bd->_http.get_value("Connection"));
+		else if (bd->_http.Get_Http_Method() == "POST")
+			bd->_ok.handle_post_response(bd->_http.get_value("Connection"));
+	}
+
+	bd->_writecount += write(sock , bd->_ok.get_hello() + bd->_writecount , bd->_ok.get_total_size() - bd->_writecount);
+
+
+	if (bd->_ok.get_total_size() <= bd->_writecount)
+	{
+		_requestmap.erase(it);
+		return 0;
+	}
+	else
+		return (1);
+
 }
 int		Server::recv(int sock)
 {
 	std::map<int, _body *>::iterator	it;
-
+	int									flag;
 
 	it = _requestmap.find(sock);
 	if (it ==  _requestmap.end())
@@ -99,10 +137,10 @@ int		Server::recv(int sock)
 		//exit(EXIT_FAILURE);
 	}
 	_body *bd = it->second;
-	bd->_http.handle_http_request(sock, bd->_body_file, bd->_body_size, bd->_body_stream);
+	flag = bd->_http.handle_http_request(sock, bd->_body_file, bd->_body_size, bd->_body_stream);
 	//it->second->handle_http_request(sock, _body_file, _body_size, _body_stream);
 	//http.handle_http_request(sock, _body_file, _body_size, _body_stream);
-	return 0;
+	return flag;
 }
 
 /*

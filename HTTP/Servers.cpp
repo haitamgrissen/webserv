@@ -66,12 +66,13 @@ void               Servers::parse_server(std::string name)
                 if (str == "location")
                 {
                     my_conf->set_location_block(1);
-                }
-                    
+                }   
                 else if (str == "cgi")
                     my_conf->set_cgi_block(1);
                 else if (str == "Server")
+                {
                     this->server_block = 1;
+                }                    
                 else if (str == "}" && my_conf->get_location_block() == 1)
                 {
                     my_conf->add_locations(*ok);

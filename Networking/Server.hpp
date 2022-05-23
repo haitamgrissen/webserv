@@ -62,12 +62,27 @@ class Server
 				{
 					_body_file.open("body.txt", std::ios::out);
 					_body_size = 0;
+
+					_readcount = 0;
+					_writecount = 0;
+
+					_startedwrite = false;
+					_startedread = false;
 				}
 				~_body() {}
 				HttpRequest			_http;
 				std::ostringstream  _body_stream;
 				std::fstream    	_body_file;
 				size_t          	_body_size;
+
+				Response 			_ok;
+				size_t				_readcount;
+				size_t				_writecount;
+
+				bool				_startedread;
+				bool				_startedwrite;
+
+
 		};
 
 		std::vector<HttpRequest>	_requestlist;
@@ -75,8 +90,10 @@ class Server
 
 
 
+
 		int					_index;
 
+		
 
 	struct SocketException : public std::exception
 	{

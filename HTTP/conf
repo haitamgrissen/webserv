@@ -1,8 +1,6 @@
-Server
-{
-    listen             127.0.0.1 8080
-    
-    root             ./root 
+Server {
+    listen             127.0.0.1 8081
+    root             ./HTTP
     allow_methods      GET POST 
 
     upload_path        /somewhere/ 
@@ -20,17 +18,17 @@ Server
     
 
 
-    location /HTTP/PATH03/ayoub.html
-    {
-        root .
+    location {
+        root ./HTTP
+        path /PATH03/ok.png
         autoindex on
-        allow_methods GET  POST
+        allow_methods  GET POST
     }
     
 
-    location /users
-    {
-        root ./root/univers/user
+    location {
+        root ./HTTP
+        path /PATH03/index.html
         autoindex on
         allow_methods GET  POST
     } 
@@ -43,13 +41,9 @@ Server
     client_max_body_size 2345
 }
 
-
-
-
-Server
-{
-    listen             10.12.1.10 7331
-    root             ./root 
+Server {
+    listen             127.0.0.1 8085
+    root             ./HTTP
     allow_methods      GET POST 
 
     upload_path        /somewhere/ 
@@ -67,17 +61,17 @@ Server
     
 
 
-    location /HTTP/PATH03/index.html
-    {
-        root .
+    location {
+        root ./HTTP
+        path /PATH03/ayoub.html
         autoindex on
-        allow_methods GET  POST
+        allow_methods  GET POST
     }
     
 
-    location /users
-    {
-        root ./root/univers/user
+    location {
+        root ./HTTP
+        path /PATH03/
         autoindex on
         allow_methods GET  POST
     } 
@@ -89,5 +83,3 @@ Server
 
     client_max_body_size 2345
 }
-
-

@@ -17,7 +17,7 @@ class Servers
     private:
         std::vector<Conf>               server;
         int                             server_block;
-        
+
     public:
         Servers(void);
         //Servers(std::string File_name);

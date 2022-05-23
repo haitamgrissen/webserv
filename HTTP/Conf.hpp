@@ -44,12 +44,14 @@ class Conf
         int                                 location_block;
         int                                 server_block;
         int                                 cgi_block;
+        int                                 location_count;
         
 
     public:
         Conf(void);
         Conf(std::string File_name);
         int                                     get_Port(void);
+        int                                     get_location_count(void);
         std::string                             get_host(void);
         std::string                             get_root(void);
         std::vector <std::string>               get_allow_methods(void);

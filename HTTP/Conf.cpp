@@ -16,6 +16,7 @@
 #include <iterator>
 Conf::Conf(void)
 {
+    this->location_count = 0;
 }
 
 void                                    Conf::show_locations()

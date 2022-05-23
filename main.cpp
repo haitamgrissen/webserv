@@ -13,7 +13,6 @@ int main(int ac, char **av)
 
   try 
   {
-
     serverG.build();
     serverG.start();
   } 
@@ -23,7 +22,7 @@ int main(int ac, char **av)
   }
     //parse config file
 
-    // build server groupes
+    // build server groupesa
 
     // start server groupe
 
