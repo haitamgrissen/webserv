@@ -44,6 +44,16 @@ std::map<std::string, std::string> HttpRequest::Parse_Map(std::string buff)
     return my_map;
 }
 
+std::string                 HttpRequest::get_my_upload_path(void)
+{
+    return this->my_upload_path;
+}
+
+void                        HttpRequest::set_my_upload_path(std::string c)
+{
+    this->my_upload_path = c;
+}
+
 int hexadecimalToDecimal(std::string hexVal)
 {
     int len = hexVal.size();
@@ -100,8 +110,13 @@ void            HttpRequest::parse_line(std::string buff)
     std::vector <std::string> tokens;
     std::stringstream check(buff);
 
+    //std::cout << "Total string2 is : " << buff <<  std::endl;
     while(getline(check, str, ' '))
+    {
+       // std::cout << "My string is : " << str << std::endl;
         tokens.push_back(str);
+    }
+        
     this->Http_Method = tokens[0];
     this->Request_Target = tokens[1];
     this->Protocol_Version = tokens[2];
@@ -115,9 +130,12 @@ void            HttpRequest::handle_regular_body(void)
     std::string     file_type;
 
     file_type = this->get_file_type();
-    result_file.open("res" + file_type, std::ios::out);
+    //std::cout << get_my_upload_path() << std::endl;
+    result_file.open(this->get_my_upload_path() + "res" + file_type, std::ios::out);
+    //result_file.open("res" + file_type, std::ios::out);
     while(getline(file_2, str))
-        result_file << str + "\n";   
+        result_file << str + "\n";
+    result_file.close();  
 }
 
 std::string     HttpRequest::get_file_type(void)
@@ -148,7 +166,7 @@ void            HttpRequest::handle_chunked_body(void)
     std::fstream    out_file;
     file_type =  this->get_file_type();
     out_file.open("my_res", std::ios::out);
-    result_file.open("res" + file_type, std::ios::out);
+    result_file.open(this->get_my_upload_path() + "res" + file_type, std::ios::out);
     while(getline(file_2, str))
     {
         if (!hex_flag)
@@ -171,6 +189,8 @@ void            HttpRequest::handle_chunked_body(void)
             count_size = 0;
         }
     }
+    result_file.close();
+    out_file.close();
 }
 
 HttpRequest::HttpRequest(void)
@@ -236,6 +256,8 @@ void            HttpRequest::get_request(std::string data, size_t & body_size, s
         }
     }
     pos = req_handle.find("\n");
+    //std::cout  << "This is my pos " << pos << std::endl;
+    //std::cout << "Total string1 is : |" << req_handle << "|" <<  std::endl;
     this->parse_line(req_handle.substr(0, pos));
     this->set_header(this->Parse_Map(req_handle.substr(pos + 1, req_handle.size())));
     this->Http_Method = this->Get_Http_Method();
@@ -256,7 +278,7 @@ int            HttpRequest::handle_http_request(int new_socket, std::fstream & b
     //size_t          body_size;
     std::string     data;
     int             valread;
-    char            buffer[30000] = {0};
+    char            buffer[5000] = {0};
     //std::ostringstream body_stream;
 
     data = "";
@@ -264,12 +286,19 @@ int            HttpRequest::handle_http_request(int new_socket, std::fstream & b
     //body_filee.open("bodyy.txt", std::ios::out);
     // while(1)
     // {
-        valread = read( new_socket , buffer, 3000);
+        valread = read( new_socket , buffer, sizeof(buffer));
+        if (valread <= 0){
+            //std::cout << "read failure\n";
+            return -1; // return -1 if read failed 
+        }
+        //std::cout << "my data is : " << buffer << std::endl;
+        //std::cout << "total read is " << valread << std::endl;
         this->total_size += valread;
         for (size_t i = 0; i < valread; i++)
             data+=buffer[i];
         if (this->Http_Method == "")
         {
+            //std::cout << "My socket is " << new_socket  << std::endl;
             this->get_request(data, body_size, body_stream);
             if (this->Http_Method != "POST")
                 return 0;
@@ -289,14 +318,14 @@ int            HttpRequest::handle_http_request(int new_socket, std::fstream & b
             {
                 body_stream << data << std::endl; 
                 
-                return 0 ;
+                return 0;
             }
             body_stream << data;  
         }
         else
             return 0;
-        data.clear(); 
-        return 1;
+        data.clear();
+        return 1; 
     //}
     // if (this->Http_Method == "POST")
     // {
@@ -333,8 +362,8 @@ void    HttpRequest::list_map(void)
 {
     for (std::map<std::string, std::string>::iterator it = this->header.begin(); it != this->header.end(); it++) {
 
-		std::cout << "Key :" << (*it).first <<  std::endl;
-        std::cout << "Value: " << (*it).second <<  std::endl;
+		//std::cout << "Key :" << (*it).first <<  std::endl;
+        //std::cout << "Value: " << (*it).second <<  std::endl;
 	}
 }
 

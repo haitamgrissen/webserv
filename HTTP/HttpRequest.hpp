@@ -20,6 +20,7 @@ class HttpRequest
         size_t                              content_length;
         std::string                         tranfer_encoding;
         size_t                              total_size;
+        std::string                         my_upload_path;
     public:
         HttpRequest(void);
         std::map<std::string, std::string>    Parse_Map(std::string buff);
@@ -30,6 +31,8 @@ class HttpRequest
         std::string     Get_Request_Target(void);
         std::string     Get_Protocol_Version(void);
         void            handle_chunked_body(void);
+        std::string     get_my_upload_path(void);
+        void            set_my_upload_path(std::string c);
         void            handle_regular_body(void);
         int             handle_http_request(int new_socket, std::fstream & body_file, size_t &body_size, std::ostringstream & body_stream);
         void            get_request(std::string data, size_t & body_size, std::ostringstream & body_stream);

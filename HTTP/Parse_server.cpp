@@ -22,6 +22,10 @@ void                             Conf::parse_server(std::vector <std::string> to
     }
     else if (tokens[0] == "root" && tokens.size() == 2)
         this->Root = tokens[1];
+    else if (tokens[0] == "upload_path" && tokens.size() == 2)
+        this->upload_path = tokens[1];
+    else if (tokens[0] == "server_name" && tokens.size() == 2)
+        this->server_name = tokens[1];
     else if (tokens[0] == "allow_methods")
     {
         for(int i=1; i < tokens.size();i++)
@@ -42,7 +46,12 @@ void                             Conf::parse_server(std::vector <std::string> to
     else if (tokens[0] == "redirection" && tokens.size() == 3)
         this->redirection.insert(std::make_pair(tokens[1], tokens[2]));
     else if (tokens[0] == "client_max_body_size" && tokens.size() == 2)
-        this->client_max_body_size = std::stoi(tokens[1]);
+    {
+        if (this->isNumber(tokens[1]))
+            this->client_max_body_size = std::stoi(tokens[1]);
+        else
+            this->client_max_body_size = -1;
+    }
     else if (tokens[0] == "autoindex" && tokens.size() == 2)
     {
         if (tokens[1] == "on")

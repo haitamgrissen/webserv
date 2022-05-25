@@ -15,6 +15,16 @@ std::string                             Conf::get_root(void)
     return this->Root;
 }
 
+std::string                             Conf::get_server_name(void)
+{
+    return this->server_name;
+}
+
+std::string                             Conf::get_upload_path(void)
+{
+    return this->upload_path;
+}
+
 int                                     Conf::get_location_count(void)
 {
     return this->location_count;
@@ -57,6 +67,17 @@ std::map<int, std::string>              Conf::get_error_page(void)
     std::cout << std::endl;
     return this->error_page;
 }
+
+bool Conf::isNumber(std::string & s)
+{
+    for (int i=0; i < s.size();i++)
+    {
+        char const c = s.c_str()[i];
+        if (std::isdigit(c) == 0) 
+            return false;
+    }
+    return true;
+ }
 
 std::map<std::string, std::string>      Conf::get_redirection(void)
 {

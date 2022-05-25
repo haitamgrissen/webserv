@@ -32,6 +32,7 @@ class ServerGroup
 
 
 		bool	isServerFD(int fd);
+		void	resetFDCap();
 
 	private:
 

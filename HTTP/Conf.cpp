@@ -17,6 +17,9 @@
 Conf::Conf(void)
 {
     this->location_count = 0;
+    this->client_max_body_size = 0;
+    this->server_name = "";
+    this->upload_path = "";
 }
 
 void                                    Conf::show_locations()

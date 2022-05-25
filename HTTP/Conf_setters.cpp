@@ -16,6 +16,16 @@ void                                    Conf::set_root(std::string c)
     this->Root = c;
 }
 
+void                                    Conf::set_upload_path(std::string c)
+{
+    this->upload_path = c;
+}
+
+void                                    Conf::set_server_name(std::string c)
+{
+    this->server_name = c;
+}
+
 void                                    Conf::set_allow_methods(std::vector <std::string> c)
 {
     this->Allow_methods = c;

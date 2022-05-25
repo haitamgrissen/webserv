@@ -45,6 +45,8 @@ class Conf
         int                                 server_block;
         int                                 cgi_block;
         int                                 location_count;
+        std::string                         server_name;
+        std::string                         upload_path;
         
 
     public:
@@ -54,6 +56,8 @@ class Conf
         int                                     get_location_count(void);
         std::string                             get_host(void);
         std::string                             get_root(void);
+        std::string                             get_upload_path(void);
+        std::string                             get_server_name(void);
         std::vector <std::string>               get_allow_methods(void);
         std::vector <std::string>               get_index(void);
         std::map<int, std::string>              get_error_page(void);
@@ -73,6 +77,8 @@ class Conf
         void                                    set_host(std::string c);
         void                                    set_Port(int c);
         void                                    set_root(std::string c);
+        void                                    set_upload_path(std::string c);
+        void                                    set_server_name(std::string c);
         void                                    set_allow_methods(std::vector <std::string> c);
         void                                    set_index(std::vector <std::string> c);
         void                                    set_error_page(std::map<int, std::string> c);
@@ -85,6 +91,7 @@ class Conf
         void                                    set_cgi_block(int c);
         void                                    add_locations(Location c);
     
+        bool                                    isNumber(std::string & s);
         void                                    show_locations();
         void                                    show_server();
         void                                    show_servers();

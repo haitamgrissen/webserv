@@ -18,12 +18,24 @@ int Server::Create()
 
 	fcntl(_fd, F_SETFL, O_NONBLOCK);
 
+	int enable = 1;
+	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+    	std::cout << "setsockopt(SO_REUSEADDR) failed" << std::endl;
+	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0)
+    	std::cout << "setsockopt(SO_REUSEPORT) failed" << std::endl;
+
+	// linger didnt work!!!!!
+	// linger lin;
+	// lin.l_onoff = 1;
+	// lin.l_linger = 0;
+	// setsockopt(_fd, SOL_SOCKET, SO_LINGER, (const char *)&lin, sizeof(int));
+
 	if (bind(_fd, (struct sockaddr * ) &_addr, sizeof(_addr)) == -1)
 		throw BindException();
 	
+    
 	if (listen(_fd, 10000) < 0)
 		throw ListenException();
-
 	std::cout <<  "SERVER FD : " << _fd << std::endl;
 
 	return (0);
@@ -35,19 +47,18 @@ int Server::Create()
 
 int		Server::accept()
 {
-	//int clnt = accept(_fd, (struct sockaddr * ) &_addr, sizeof(_addr));
 	int clnt;
 	if ((clnt = ::accept(_fd, (struct sockaddr *)&_addr, (socklen_t*)&_addrlen)) < 0)
     {
 		std::cout << "[   ]" <<  _fd << "[   ]"<< "hello from accept" << std::endl;
-        perror("In accept");
-        exit(EXIT_FAILURE);
+        return (-1);
     }
-	fcntl(clnt, F_SETFL, O_NONBLOCK);
-
-	_requestmap.insert(std::make_pair(clnt, new _body()));
-
-	return (clnt);
+	else
+	{
+		fcntl(clnt, F_SETFL, O_NONBLOCK);
+		_requestmap.insert(std::make_pair(clnt, new _body()));
+		return (clnt);
+	}
 }
 
 int		Server::send(int sock)
@@ -73,10 +84,6 @@ int		Server::send(int sock)
 		bd->_body_file << bd->_body_stream.str() << std::endl;
 		bd->_body_file.close();        
 	}
-	if (bd->_http.Get_Http_Method() == "POST" && bd->_http.get_value("Transfer-Encoding") == "chunked")
-		bd->_http.handle_chunked_body();
-	else if (bd->_http.Get_Http_Method() == "POST")
-		bd->_http.handle_regular_body();
 
 
 
@@ -100,22 +107,44 @@ int		Server::send(int sock)
 
 	bd->_ok.check_file();
 	error_msg = bd->_ok.parsing_check();
+	bd->_http.set_my_upload_path(bd->_ok.get_my_upload_path());
 
-	if (error_msg != "")
-		bd->_ok.error_handling(error_msg);
+
+	if (bd->_http.Get_Http_Method() == "POST" && bd->_http.get_value("Transfer-Encoding") == "chunked")
+		bd->_http.handle_chunked_body();
+	else if (bd->_http.Get_Http_Method() == "POST")
+		bd->_http.handle_regular_body();
+	if (bd->_ok.get_max_body_size() < 0)
+	{
+		bd->_ok.error_handling("500 Webservice currently unavailable");
+	}
+	else if (bd->_http.get_total_size() > bd->_ok.get_max_body_size() && bd->_ok.get_max_body_size() != 0)
+		bd->_ok.error_handling("413 Payload Too Large");
 	else
 	{
-		if (bd->_http.Get_Http_Method() == "GET")
-			bd->_body_size = bd->_ok.handle_Get_response();
-		else if (bd->_http.Get_Http_Method() == "DELETE")
-			bd->_ok.handle_delete_response(bd->_http.get_value("Connection"));
-		else if (bd->_http.Get_Http_Method() == "POST")
-			bd->_ok.handle_post_response(bd->_http.get_value("Connection"));
+		if (error_msg != "")
+			bd->_ok.error_handling(error_msg);
+		else
+		{
+			if (bd->_http.Get_Http_Method() == "GET")
+				bd->_body_size = bd->_ok.handle_Get_response();
+			else if (bd->_http.Get_Http_Method() == "DELETE")
+				bd->_ok.handle_delete_response(bd->_http.get_value("Connection"));
+			else if (bd->_http.Get_Http_Method() == "POST")
+				bd->_ok.handle_post_response(bd->_http.get_value("Connection"));
+		}		
+	}	
+
+	int flag;
+	flag = write(sock , bd->_ok.get_hello() + bd->_writecount , bd->_ok.get_total_size() - bd->_writecount);
+	bd->_writecount += flag;
+
+
+	if (flag == 0)
+	{
+		_requestmap.erase(it);
+		return 0;
 	}
-
-	bd->_writecount += write(sock , bd->_ok.get_hello() + bd->_writecount , bd->_ok.get_total_size() - bd->_writecount);
-
-
 	if (bd->_ok.get_total_size() <= bd->_writecount)
 	{
 		_requestmap.erase(it);
@@ -134,34 +163,21 @@ int		Server::recv(int sock)
 	if (it ==  _requestmap.end())
 	{
 		std::cout << "couldnt receve request\n";
-		//exit(EXIT_FAILURE);
+		_requestmap.erase(it);
+		return (-1);//TODO:ghir t9mira 
 	}
-	_body *bd = it->second;
-	flag = bd->_http.handle_http_request(sock, bd->_body_file, bd->_body_size, bd->_body_stream);
-	//it->second->handle_http_request(sock, _body_file, _body_size, _body_stream);
-	//http.handle_http_request(sock, _body_file, _body_size, _body_stream);
-	return flag;
+	else
+	{
+		_body *bd = it->second;
+		flag = bd->_http.handle_http_request(sock, bd->_body_file, bd->_body_size, bd->_body_stream);
+		return flag;
+	}
 }
 
 /*
 ** --------------------------------- Modefiers ---------------------------------
 */
 
-int Server::SAcceptCon()
-{
-	// std::cout << "hello from accept§" << std::endl;
-	// //int clnt = accept(_fd, (struct sockaddr * ) &_addr, sizeof(_addr));
-	// int clnt;
-	// if ((clnt = ::accept(_fd, (struct sockaddr *)&_addr, (socklen_t*)&_addrlen)) < 0)
-    // {
-    //     perror("In accept");
-    //     exit(EXIT_FAILURE);
-    // }
-	// fcntl(clnt, F_SETFL, O_NONBLOCK);
-
-	// return (clnt);
-	return 0;
-}
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
@@ -180,9 +196,8 @@ int Server::SAcceptCon()
 	{
 		memset((char *)&_addr, 0, sizeof(_addr)); 
     	_addr.sin_family = AF_INET;
-    	_addr.sin_port =  htons(_port);//htons(_port);
-		//std::cout << _host << std::endl;
-    	_addr.sin_addr.s_addr = _host;//INADDR_ANY;//_host;//htonl(_host);0.0.0.0 127.0.0.1
+    	_addr.sin_port =  htons(_port);
+    	_addr.sin_addr.s_addr = _host;
 		_addrlen = sizeof(_addr);
 	}
 
@@ -193,14 +208,14 @@ int Server::SAcceptCon()
 
 
 
-		void		Server::setIndex(int i)
-		{
-			_index = i;
-		}
-		int			Server::getIndex()
-		{
-			return _index;
-		}
+	void		Server::setIndex(int i)
+	{
+		_index = i;
+	}
+	int			Server::getIndex()
+	{
+		return _index;
+	}
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------

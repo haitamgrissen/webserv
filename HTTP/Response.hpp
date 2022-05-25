@@ -32,8 +32,8 @@ class Response
         std::string                     req_target;
         std::string                     complete_body;
         int                             my_body_flag;
-
-
+        int                             max_body_size;
+        std::string                     my_upload_path;
 
 
         int                             _index;
@@ -46,6 +46,8 @@ class Response
         size_t                      handle_Get_response(void);
         void                        error_handling(std::string error);
         std::string                 get_file_type(std::string type);
+        std::string                 get_my_upload_path(void);
+        void                        set_my_upload_path(std::string c);
         bool                        check_dir(std::string path);
         std::string                 split_file_path(std::string type);
         void                        set_mybuffer(std::string c);
@@ -57,6 +59,8 @@ class Response
         void                        handle_delete_response(std::string connection);
         void                        handle_post_response(std::string connection);
         size_t                      get_body_size(void);
+        int                         get_max_body_size(void);
+        void                        set_max_body_size(int c);
         size_t                      get_total_size(void);
         std::string                 get_error_body(std::string path);
         void                        set_request_method(std::string c);

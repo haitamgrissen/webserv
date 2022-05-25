@@ -1,5 +1,6 @@
 #include "ServerGroup.hpp"
 
+
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
@@ -77,7 +78,6 @@ void					ServerGroup::build()
 			FD_SET(fd, &_masterfds);
 			_servers_map.insert(std::make_pair(fd, currentsrv));
 			currentsrv->setIndex(i);	
-			//_servers_vec.push_back(currentsrv);
 
 			if (fd > _fd_cap)
 				_fd_cap = fd;
@@ -92,17 +92,17 @@ void					ServerGroup::start()
 	struct timeval	timetostop;
 	timetostop.tv_sec  = 1;
 	timetostop.tv_usec = 0;
-
+	signal(SIGPIPE, SIG_IGN);//ignore sigPipe
 	while (true)
 	{
 		_readset = _masterfds;
 		_writeset = _masterwritefds;
-		if (select((int)_fd_cap + 1, &_readset, &_writeset, NULL, NULL) < 0)
-			throw SelectException();
+		resetFDCap();
 
-		for (size_t i = 0; i < _fd_cap + 1; i++)
+		if (select((int)_fd_cap + 1, &_readset, &_writeset, NULL, &timetostop) < 0)
+			throw SelectException();
+		for (size_t i = 0; i <= _fd_cap ; i++)
 		{
-			
 			if (FD_ISSET(i, &_writeset) || FD_ISSET(i, &_readset))
 			{
 				if (isServerFD(i)) //check if the server fd is the one wich is ready if true accept client connection
@@ -113,19 +113,19 @@ void					ServerGroup::start()
 					if (it ==  _servers_map.end())
 					{
 						std::cout << "ERROR IN SERVERS MAP accept\n";
-						exit(EXIT_FAILURE);
+						//exit(EXIT_FAILURE);
 					}
-						//current server recv
-					
-					std::cout << "fd :" << it->second->getsocketfd() << "index :" << it->second->getIndex() << std::endl;
+					std::cout << "fd : " << it->second->getsocketfd() << " index : " << it->second->getIndex() << std::endl;
 					int new_socket = (it)->second->accept();
-					//int new_socket = acceptCon(i); 
-					std::cout << "connection is accepted : " << new_socket << std::endl;
-					FD_SET(new_socket, &_masterfds);
-					if (new_socket > _fd_cap)
-						_fd_cap = new_socket;
+					if (new_socket > 0)
+					{
+						std::cout << "connection is accepted : " << new_socket << std::endl;
+						FD_SET(new_socket, &_masterfds);
+						if (new_socket > _fd_cap)
+							_fd_cap = new_socket;
 
-					_client_fds.insert(std::make_pair(new_socket, it->second));
+						_client_fds.insert(std::make_pair(new_socket, it->second));
+					}
 				}
 				else
 				{
@@ -141,21 +141,33 @@ void					ServerGroup::start()
 						}
 
 						flag = (it)->second->recv(i);
-						if (!flag)
+						if (flag == -1)
+						{
+							FD_CLR(i, & _masterfds);
+							_client_fds.erase(it);
+							close(i);
+						}
+						else if (flag >= 0)
 						{
 							FD_CLR(i, & _masterfds);
 							FD_SET(i, & _masterwritefds);
 						}
+						// else if (flag > 0)
+						// {
+						// 	FD_CLR(i, & _masterfds);
+						// 	FD_SET(i, & _masterwritefds);
+						// }
 					}
 					else if (FD_ISSET(i, &_writeset)) // connection is ready to be written to
 					{
-
 						std::map<int, Server *>::iterator it;
 						it = _client_fds.find(i);
 						if (it == _client_fds.end())
 						{
 							std::cout << "ERROR IN SERVERS MAP response\n";
-							exit(EXIT_FAILURE);
+							FD_CLR(i, & _masterwritefds);
+       						close(i);
+							//exit(EXIT_FAILURE);
 						}
 						int flag;
 						flag = (it)->second->send(i);
@@ -166,12 +178,23 @@ void					ServerGroup::start()
 							FD_CLR(i, & _masterwritefds);
        						close(i);
 						}
-
-
 					}
 				}
 			}
+			else
+			{
+				// std::map<int, Server *>::iterator it;
+				// it = _client_fds.find(i);
+				// if (it != _client_fds.end())
+				// {
+				// 	_client_fds.erase(it);
+				// 	close(i);
+				// }
+			}
 		}
+		// std::map<int, Server *>::iterator it = _client_fds.begin();
+		// std::cout << "after for loop : [" << _client_fds.size() << std::endl << "] its FD : [" << it->first << "]"<< std::endl;
+
 	}
 }
 
@@ -180,32 +203,6 @@ void					ServerGroup::stop()
 	
 }
 
-/*
-** --------------------------------- HANDELINGS ---------------------------------
-*/
-int		ServerGroup::acceptCon(int fd)
-{
-	int newsocket;
-	struct sockaddr_in newaddr;
-	unsigned int addrlen;
-	
-	newsocket = accept(fd , (struct sockaddr *)&newaddr, (socklen_t*)&addrlen);
-	fcntl(newsocket, F_SETFL, O_NONBLOCK);
-
-	if (newsocket < 0)
-		throw AcceptException();
-	//_client_fds.push_back(newsocket);
-	return newsocket;
-}
-
-int		ServerGroup::sendCon()
-{
-	return 0;
-}
-int		ServerGroup::recvCon()
-{
-	return 0;
-}
 
 /*
 ** --------------------------------- CHECKS ---------------------------------
@@ -219,6 +216,31 @@ bool	ServerGroup::isServerFD(int fd)
 		return false;
 	else
 		return true;
+}
+
+
+void	ServerGroup::resetFDCap()
+{
+	std::map<int, Server *>::iterator it1;
+	it1 = _servers_map.begin();
+	_fd_cap = 0;
+
+	while (it1 != _servers_map.end())
+	{
+		if (_fd_cap < it1->first)
+			_fd_cap = it1->first;
+		it1++;
+	}
+
+	std::map<int, Server *>::iterator it;
+	it = _client_fds.begin();
+	while (it != _client_fds.end())
+	{
+		if (_fd_cap < it->first)
+			_fd_cap = it->first;
+		it++;
+	}
+	
 }
 
 /*
