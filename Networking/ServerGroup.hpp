@@ -8,6 +8,23 @@
 #include "../HTTP/Response.hpp"
 #include "../HTTP/Servers.hpp"
 
+	class listener{
+		public :
+		listener(){};
+		~listener(){};
+		std::string _host;
+		int			_port;
+		std::string _name;
+	};
+	class	VirtualServer{
+		public :
+		VirtualServer(){};
+		~VirtualServer(){};
+		std::vector<Server *> _virtual_server_list;
+	};
+
+
+
 
 
 class ServerGroup
@@ -26,22 +43,35 @@ class ServerGroup
 		void	start();
 		void	stop();
 
+		Server			*getHostServer(std::string servername, std::string host, int port);
+		VirtualServer	*addvirtualserver(std::string host, int port);
+
+
+
+
 		int		acceptCon(int fd);
 		int		sendCon();
-		int		recvCon();
+		int		recvCon(int fd);
 
 
 		bool	isServerFD(int fd);
 		void	resetFDCap();
-
+		bool 	is_number(std::string s);
 	private:
 
-	// std::vector<std::string>	_hostslist;
-	// std::vector<int>			_portslist;
+
+
+
+
 	std::map<int, Server *>			_client_fds;
 	std::map<int, Server *>			_servers_map;
-	std::vector<Server>				_servers_vec;
 
+	std::map<std::string , VirtualServer *>			_servername_map;
+	// std::map<std::string ,listener *>			_servername_map;
+	std::map<listener *, VirtualServer *>		_vrtl_server_map;
+
+
+	std::map<int , _body *>						_requests_map;
 
 
 /////////////////////////////////////////////

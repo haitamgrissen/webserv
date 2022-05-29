@@ -154,6 +154,133 @@ int		Server::send(int sock)
 		return (1);
 
 }
+
+
+
+int		Server::send(int sock, _body * bd)
+{
+		std::string	my_method;
+	std::string	my_chunk;
+	int			my_len;
+	std::string	error_msg;
+	std::string	request_target;
+	std::string	red_target;
+
+	bd->init_values(my_method, my_chunk, _index, my_len, request_target);
+	
+	if (bd->_startedwrite == false)
+		bd->_startedwrite = true;
+	red_target = request_target.substr(request_target.find_last_of("/") + 1, request_target.size());
+	if (bd->_ok.get_server(_index).get_redirection_value(red_target))
+	{
+		request_target = red_target;
+		bd->_ok.set_request_target(request_target);
+		bd->_ok.handle_redirect_response(bd->_http.get_value("Connection"));
+	}
+	else if (my_method == "POST" && ((my_len < 0) || (bd->_body_stream.str() == "" && my_len != 0)))
+		bd->_ok.error_handling("400 Bad Request");
+	else
+	{
+		if (!bd->handle_body(my_method, my_chunk, error_msg, my_len))
+			bd->_ok.error_handling("400 Bad Request");
+		else
+		{
+			if (bd->_ok.get_max_body_size() < 0)
+				bd->_ok.error_handling("500 Webservice currently unavailable");
+			else if (bd->_http.get_total_size() > bd->_ok.get_max_body_size() && bd->_ok.get_max_body_size() != 0)
+				bd->_ok.error_handling("413 Payload Too Large");
+			else
+			{
+				if (error_msg != "")
+					bd->_ok.error_handling(error_msg);
+				else
+					bd->handle_response(my_method);
+				
+			}			
+		}
+	}
+
+	bd->_writecount += write(sock , bd->_ok.get_hello() + bd->_writecount , bd->_ok.get_total_size() - bd->_writecount);
+	//bd->_ok.clear();
+	//bd->close_file();
+	//delete[] bd;
+	if (bd->_ok.get_total_size() <= bd->_writecount)
+	{
+		// _requestmap.erase(it);
+		return 0;
+	}
+	else
+		return (1);
+	// if (bd->_http.Get_Http_Method() == "POST")
+	// {
+	// 	bd->_body_file << bd->_body_stream.str() << std::endl;
+	// 	bd->_body_file.close();        
+	// }
+
+	// if (bd->_startedwrite == false)
+	// {
+	// 	bd->_startedwrite = true;
+	// }
+
+	// bd->_ok.setIndex(_index);
+	// std::string	error_msg;
+	// bd->_ok.set_request_method(bd->_http.Get_Http_Method());
+	// bd->_ok.set_request_target(bd->_http.Get_Request_Target());
+
+
+	// bd->_ok.set_mybuffer(bd->_http.Get_Request_Target());
+
+	// bd->_ok.check_file();
+	// error_msg = bd->_ok.parsing_check();
+	// bd->_http.set_my_upload_path(bd->_ok.get_my_upload_path());
+
+
+	// if (bd->_http.Get_Http_Method() == "POST" && bd->_http.get_value("Transfer-Encoding") == "chunked")
+	// 	bd->_http.handle_chunked_body();
+	// else if (bd->_http.Get_Http_Method() == "POST")
+	// 	bd->_http.handle_regular_body();
+	// if (bd->_ok.get_max_body_size() < 0)
+	// {
+	// 	bd->_ok.error_handling("500 Webservice currently unavailable");
+	// }
+	// else if (bd->_http.get_total_size() > bd->_ok.get_max_body_size() && bd->_ok.get_max_body_size() != 0)
+	// 	bd->_ok.error_handling("413 Payload Too Large");
+	// else
+	// {
+	// 	if (error_msg != "")
+	// 		bd->_ok.error_handling(error_msg);
+	// 	else
+	// 	{
+	// 		if (bd->_http.Get_Http_Method() == "GET")
+	// 			bd->_body_size = bd->_ok.handle_Get_response();
+	// 		else if (bd->_http.Get_Http_Method() == "DELETE")
+	// 			bd->_ok.handle_delete_response(bd->_http.get_value("Connection"));
+	// 		else if (bd->_http.Get_Http_Method() == "POST")
+	// 			bd->_ok.handle_post_response(bd->_http.get_value("Connection"));
+	// 	}		
+	// }	
+
+	// int flag;
+	// flag = write(sock , bd->_ok.get_hello() + bd->_writecount , bd->_ok.get_total_size() - bd->_writecount);
+	// bd->_writecount += flag;
+
+
+	// if (flag == 0)
+	// {
+	// 	//_requestmap.erase(it);
+	// 	return 0;
+	// }
+	// else if (bd->_ok.get_total_size() <= bd->_writecount)
+	// {
+	// 	//_requestmap.erase(it);
+	// 	return 0;
+	// }
+	// else
+	// 	return (1);
+
+}
+
+
 int		Server::recv(int sock)
 {
 	std::map<int, _body *>::iterator	it;
@@ -163,7 +290,6 @@ int		Server::recv(int sock)
 	if (it ==  _requestmap.end())
 	{
 		std::cout << "couldnt receve request\n";
-		_requestmap.erase(it);
 		return (-1);//TODO:ghir t9mira 
 	}
 	else
@@ -216,6 +342,26 @@ int		Server::recv(int sock)
 	{
 		return _index;
 	}
+
+
+	void		Server::setName(std::string name)
+	{
+		_name = name;
+	}
+	std::string	Server::getName()
+	{
+		return _name;
+	}
+
+
+		int			Server::getPort()
+		{
+			return (_port);
+		}
+		std::string	Server::getHost()
+		{
+			return(_hoststring);
+		}
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------

@@ -34,6 +34,8 @@ class Response
         int                             my_body_flag;
         int                             max_body_size;
         std::string                     my_upload_path;
+        std::string                     redirect_path;
+        std::string                     regular_path;
 
 
         int                             _index;
@@ -42,6 +44,7 @@ class Response
         Response(std::string File_name);
         char                        *get_date(void);
         std::string                 parsing_check(void);
+        Conf                        get_server(int index);
         std::string                 check_file(void);
         size_t                      handle_Get_response(void);
         void                        error_handling(std::string error);
@@ -67,7 +70,10 @@ class Response
         std::string                 get_request_method(void);
         void                        set_request_target(std::string c);
         std::string                 get_request_target(void);
+        void                        set_redirect_path(std::string c);
+        std::string                 get_redirect_path(void);
         int                         get_body_flag(void);
+        void                        clear();
         int                         check_errors();
         void                        initiate_response(std::string & target_file);
         int                         handle_dir(std::string target_file, std::string body, struct stat &status);
@@ -75,6 +81,16 @@ class Response
         std::string                 get_my_res(void);
         int                         handle_dir_response(std::string target_file);
         int                         handle_special_dir(std::string target_file, struct stat &status, std::string & body);
+        void                        handle_redirect_response(std::string c);
+        int                         check_index_of_dir();
+        int                         search_dir_in_locations(std::string pos);
+        void                        Edit_path();
+        void                        special_dir_treatment();
+        void                        special_dir_in_location();
+        void                        special_dir_in_server();
+        int                         search_index_in_location();
+        int                         search_index_in_server();
+        void                        dir_treatment();
         ~Response(void);
 
 

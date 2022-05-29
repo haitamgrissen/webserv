@@ -44,14 +44,13 @@ std::vector <std::string>               Location::get_allow_methods(void)
     // for(int i = 0; i < this->location_Allow_methods.size(); i++)
     //     std::cout << "|" << location_Allow_methods[i] << "|" ;
     // std::cout << std::endl;
+    
     return this->location_Allow_methods;
 }
 
 std::vector <std::string>               Location::get_index(void)
 {
-    for(int i = 0; i < this->location_Index.size(); i++)
-                 std::cout << "|" << this->location_Index[i] << "|" ;
-    std::cout << std::endl;
+    std::cout << this->location_Index.size() << std::endl;
     return this->location_Index;
 }
 

@@ -1,54 +1,55 @@
 Server {
-    listen             127.0.0.1 8080
+    listen             127.0.0.1 8082
     root             ./HTTP
     allow_methods      GET POST 
 
     upload_path        ./HTTP/PATH03/
-
-    index index.html index.php 
     
     server_name       example.com
 
     error_page      404 ./HTTP/error_pages/404.html
     error_page      403 ./HTTP/error_pages/403.html
+    error_page      400 ./HTTP/error_pages/400.html
     error_page      405 ./HTTP/error_pages/405.html
     error_page      413 ./HTTP/error_pages/413.html
     error_page      500 ./HTTP/error_pages/500.html
     autoindex off
 
     
+    redirection    /youtube             www.youtube.com
+    redirection    /ok 3yqti
 
-
+    
     location {
         root ./HTTP
-        path /PATH03/index.html
+        path /PATH03/nadi.png
         autoindex on
         allow_methods  POST GET
     }
     
     location {
         root ./HTTP
+        path /  
+        autoindex off
+        allow_methods  POST GET
+    }
+    location {
+        root ./HTTP
         path /PATH03/body.png
         autoindex on
         allow_methods DELETE POST GET
-    } 
+    }
 
     location {
         root ./HTTP
-        path /PATH03/vid.mp4
+        path /PATH03/index.html
         autoindex on
         allow_methods DELETE POST GET
-    } 
+    }
 
-     location {
-        root ./HTTP
-        path /PATH03/
-        autoindex on
-        allow_methods DELETE POST GET
-    } 
-
-    cgi .php
+    cgi 
     {
+        path = .php
         allow_methods      POST
         cgi_path         /Volumes/SPYDERSY/webserv/cgi-bin/php-cgi
     }
@@ -56,23 +57,24 @@ Server {
 }
 
 Server {
-    listen             127.0.0.1 8081
+    listen             127.0.0.1 8089
     root             ./HTTP
     allow_methods      GET POST 
 
-    upload_path        ./HTTP/PATH03/
+    upload_path        /somewhere/ 
 
     index index.html index.php 
-    
-    server_name       example.com
-
+     
     error_page      404 ./HTTP/error_pages/404.html
     error_page      403 ./HTTP/error_pages/403.html
     error_page      405 ./HTTP/error_pages/405.html
-    error_page      413 ./HTTP/error_pages/413.html
+    error_page      400 ./HTTP/error_pages/400.html
     error_page      500 ./HTTP/error_pages/500.html
+    error_page      413 ./HTTP/error_pages/413.html
     autoindex off
 
+    redirection    /doooooxsxvasvf /test/
+    
     
 
 
@@ -80,14 +82,21 @@ Server {
         root ./HTTP
         path /PATH03/ayoub.html
         autoindex on
-        allow_methods  POST GET
+        allow_methods  GET POST
     }
+    
 
+    location {
+        root ./HTTP
+        path /PATH03/
+        autoindex on
+        allow_methods GET  POST
+    } 
     cgi .php
     {
         allow_methods      POST
         cgi_path         /Volumes/SPYDERSY/webserv/cgi-bin/php-cgi
     }
 
+    client_max_body_size 4343
 }
-

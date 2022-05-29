@@ -48,6 +48,7 @@ Response::Response(void)
     this->body_size = 0;
     this->req_method = "";
     this->my_upload_path = "";
+    this->regular_path = "";
     
 }
 
@@ -85,22 +86,14 @@ char               *Response::get_date(void)
 
 std::string              Response::get_error_body(std::string path)
 {
-    std::string     ok;
-    std::string     bodygen;
-    std::ifstream   file(path);
     std::ostringstream	my_Res_error;
-    std::string     line;
-    //std::fstream    body_file;
-    int             len = 0;
-    std::ostringstream body_stream;
-    char buffer[30000] = {0};
-
-    int ind;
+    std::string         line;
+    char                buffer[30000] = {0};
     struct stat         status;
+    int                 len = 0;
+    int                 fd;
 
-    //std::cout << path << std::endl;
-    //body_file.open("my_body.txt", std::ios::out);
-    int fd = open(path.c_str(), O_RDONLY);
+    fd = open(path.c_str(), O_RDONLY);
     stat(path.c_str(), &status);
     while(this->body_size < status.st_size)
     {
@@ -108,47 +101,38 @@ std::string              Response::get_error_body(std::string path)
         this->body_size += len;
         for (size_t i = 0; i < len; i++)
             line += buffer[i];
-        body_stream << line;
+        my_Res_error << line;
         line.clear();
     }
-    my_Res_error << body_stream.str();
     close(fd);
-    //body_file << body_stream.str();
     return my_Res_error.str();
+}
+
+Conf                Response::get_server(int index)
+{
+    return this->my_servers[index];
 }
 
 size_t              Response::get_body(std::string path)
 {
-    std::string     ok;
-    std::string     bodygen;
-    std::ifstream   file(path);
-    std::string     line;
-    //std::fstream    body_file;
-    int             len = 0;
-    std::ostringstream body_stream;
-    char buffer[30000] = {0};
-
-    int ind;
+    int                 len;
+    char                buffer[5000] = {0};
     struct stat         status;
+    int                 fd;
 
-    //std::cout << path << std::endl;
-    //body_file.open("my_body.txt", std::ios::out);
-    int fd = open(path.c_str(), O_RDONLY);
+    len = 0;
+    fd = open(path.c_str(), O_RDONLY);
     stat(path.c_str(), &status);
     while(this->body_size < status.st_size)
     {
-        len = read(fd, &buffer, 3000);
+        len = read(fd, buffer, sizeof(buffer));
+        if (len <= 0)
+            break;
         this->body_size += len;
         for (size_t i = 0; i < len; i++)
-            line += buffer[i];
-        body_stream << line;
-        line.clear();
+            this->my_Res << buffer[i];
     }
-    //std::cout << this->body_size << std::endl;
-   // std::cout << status.st_size << std::endl;
-    this->my_Res << body_stream.str();
     close(fd);
-    //body_file << body_stream.str();
     return this->body_size;
 }
 
@@ -176,11 +160,7 @@ char*                       Response::get_hello()
 void                        Response::set_hello(std::string c)
 {
     this->hello = (char *)malloc(sizeof(char ) * c.size() + 1);
-
-    
     memcpy( this->hello, c.c_str(), c.size());
-    //std::cout << this->hello << std::endl;
-    //strcpy(this->hello, c.c_str());
 }
 
 void                        Response::set_max_body_size(int c)
@@ -193,17 +173,25 @@ int                         Response::get_max_body_size(void)
     return this->max_body_size;
 }
 
-std::string                Response::check_file(void)
+void                        Response::clear()
 {
-    Servers ok;
-    std::string path = this->get_mybuffer();
-    std::vector <std::string> location_paths;
-    std::string               str;
-    std::vector <std::string> tokens;
-    std::stringstream         check(path);
+    free(this->hello);
+    //delete[] this->hello;
+}
 
+std::string                Response::check_file()
+{
+    Servers                     ok;
+    std::string                 path;
+    std::vector <std::string>   location_paths;
+    std::string                 str;
+    std::vector <std::string>   tokens;
+    std::stringstream           check(path);
+    struct stat                 status;
+
+    path = this->get_mybuffer();
+    this->regular_path = this->get_mybuffer();
     ok.parse_server("HTTP/conf");//TODO:change with passed argument 
-    //std::cout << this->
     while(getline(check, str, '/'))
         tokens.push_back(str);   
     for(int i=0; i < ok.get_server()[_index].get_locations().size(); i++)
@@ -215,21 +203,37 @@ std::string                Response::check_file(void)
         {
             this->pos = i;
             this->abs_path = ok.get_server()[_index].get_locations()[i].get_root() + path;
-            //std::cout << this->abs_path << std::endl;
             return this->abs_path;
-        }            
+        }
+        else if (location_paths[i] == path + "/")
+        {
+            this->pos = i;
+            this->abs_path = ok.get_server()[_index].get_locations()[i].get_root() + path + "/";
+            this->regular_path += "/";
+            return this->abs_path;
+        }
     }
-    this->abs_path = "error";
+    this->abs_path = ok.get_server()[_index].get_root() + path;
+    stat(this->abs_path.c_str(), &status);
+    if (S_ISDIR(status.st_mode))
+    {
+        if (this->abs_path[this->abs_path.size() - 1] != '/')
+        {
+            this->abs_path += "/";
+            this->regular_path += "/";
+        }
+    }
+    else
+        this->abs_path = "error";
     return this->abs_path;
 }
 
-
 bool                        Response::check_dir(std::string path)
 {
-    std::ostringstream my_html_page;
-    DIR *              dir;
-    struct dirent      *dir_ind;
-    struct stat		status;
+    std::ostringstream  my_html_page;
+    DIR *               dir;
+    struct dirent       *dir_ind;
+    struct stat		    status;
 
     my_html_page << "<html>\n<head><title>Index of " << this->abs_path << "</title></head>\n<body>\n<h1>Index of "\
 				<< this->abs_path << "</h1>\n<hr><pre><a href=\"../\">../</a>\n";
@@ -250,10 +254,8 @@ bool                        Response::check_dir(std::string path)
 			else{
 				my_html_page << std::setw(20) << status.st_size << std::endl;
 			}
-            //std::cout << buff << std::endl;
         }
         my_html_page << "</pre><hr></body>\n</html>";
-
         this->dir_list = my_html_page.str();
         closedir(dir);
         return true;
@@ -263,30 +265,16 @@ bool                        Response::check_dir(std::string path)
 
 void               Response::error_handling(std::string error)
 {
-    std::string status_code;
     std::ostringstream	my_Res_error;
-    std::string  error_page;
+    std::string         error_page;
     std::string         Error_ind;
     struct stat			status;
 
     Error_ind = error.substr(0, 3);
     error_page = genErrorPage(std::stoi(Error_ind), error.substr(4, error.size()));
-    //std::cout << error_page << "|my error" << std::endl;
     my_Res_error << "HTTP/1.1 " << error << std::endl;
     my_Res_error << "Date: "<< this->get_date() << std::endl;
     my_Res_error << "Server: Webserv/4.4.0" << std::endl;
-
-    // if (Error_ind == "405") //rj3ha 405
-    // {
-    //     std::vector<std::string>  c;
-    //     std::string method;
-    //     Servers ok;
-
-    //     ok.parse_server("HTTP/conf");
-    //     c = ok.get_server()[_index].get_locations()[this->pos].get_allow_methods();
-    //     if (std::find(c.begin(), c.end(), "GET") != c.end())
-    //         this->my_Res << "Allow: " << method << "\r\n";
-    // }
     stat(error_page.c_str(), &status);
     my_Res_error << "Content-Type: text/html\r\n";
     my_Res_error << "Content-Length: " << status.st_size << "\r\n";
@@ -321,24 +309,60 @@ void                        Response::handle_delete_response(std::string connect
     else
     {
         struct stat         status;
+        char*               date;
 
+        date = this->get_date();
         this->my_Res << "HTTP/1.1 204 No Content\r\n";
-        this->my_Res << "Date: "<< this->get_date() << "\r\n";
+        this->my_Res << "Date: "<< date << "\r\n";
         this->my_Res << "Server: Webserv/4.4.0\r\n";
         this->my_Res << "Connection: " << connection  << "\r\n\r\n";
         this->set_hello(this->my_Res.str());
+        delete[] date;
     }
+}
+
+void                        Response::set_redirect_path(std::string c)
+{
+    this->redirect_path = c;
+}
+
+std::string                 Response::get_redirect_path(void)
+{
+    return this->redirect_path;
+}
+
+void                        Response::handle_redirect_response(std::string c)
+{
+    struct stat         status;
+
+    this->my_Res << "HTTP/1.1 301 Moved Permanently\r\n";
+    this->my_Res << "Date: "<< this->get_date() << "\r\n";
+    this->my_Res << "Server: Webserv/4.4.0\r\n";
+    this->my_Res << "Location: " << "https://" + this->get_request_target() + "/"  << "\r\n"; 
+    this->my_Res << "Connection: close" << "\r\n\r\n";
+    this->total_size = this->my_Res.str().size();
+    std::cout << this->my_Res.str() << std::endl;
+    //std::cout << this->my_Res.str() << std::endl;
+    this->set_hello(this->my_Res.str());    
 }
 
 void                        Response::handle_post_response(std::string connection)
 {
     struct stat         status;
 
-    this->my_Res << "HTTP/1.1 201 CREATED\r\n";
+    this->my_Res << "HTTP/1.1 201 Created\r\n";
     this->my_Res << "Date: "<< this->get_date() << "\r\n";
     this->my_Res << "Server: Webserv/4.4.0\r\n";
-    this->my_Res <<"Connection: " << connection  << "\r\n\r\n";
-    this->set_hello(this->my_Res.str());
+    this->my_Res << "Location: " << this->get_my_upload_path() + "\r\n"; 
+    this->my_Res << "Connection: " << connection  << "\r\n\r\n";
+    // this->my_Res << "Transfer-Encoding: chunked\r\n"; 
+    // this->my_Res << "0\r\n\r\n" << std::endl;
+
+    this->total_size = this->my_Res.str().size();
+    //std::cout << this->my_Res.str() << std::endl;
+    // std::cout << this->get_my_upload_path() << std::endl;
+    // std::cout << "handle_post_response" << std::endl;
+    this->set_hello(this->my_Res.str());    
 }
 
 size_t                      Response::get_body_size(void)
@@ -353,13 +377,12 @@ size_t                      Response::get_total_size(void)
 
 std::string                 Response::parsing_check(void)
 {
-    struct stat	status;
-    std::string target_file;
-    std::string my_location_path;
-    std::vector<std::string> location_methods;
+    struct stat	              status;
+    std::string               target_file;
+    std::string               my_location_path;
+    std::vector<std::string>  location_methods;
 
     target_file = this->req_target;
-    //std::cout << _index << "here \n\n\n\n"<< std::endl;
     for(int i=0; i < this->my_servers[_index].get_location_count() ; i++)
     {
         my_location_path = this->my_servers[_index].get_locations()[i].get_location_path();
@@ -367,7 +390,6 @@ std::string                 Response::parsing_check(void)
         if ((target_file == my_location_path) || (target_file == my_location_path + "/"))
         {
             location_methods = this->my_servers[_index].get_locations()[i].get_allow_methods();
-            //std::cout << this->my_servers[_index].get_locations()[i].get_client_max_body_size() << " TOTAL2" << std::endl;
             if (std::find(location_methods.begin() , location_methods.end(), this->req_method) == location_methods.end())
                 return "405 Method Not Allowed";
         }
@@ -390,97 +412,53 @@ int                        Response::check_errors()
 
 void                        Response::initiate_response(std::string & target_file)
 {
+    char        *my_date;
+
+    my_date = this->get_date();
     this->total_size = 0;
-    target_file  = this->my_servers[_index].get_locations()[this->pos].get_location_path();
+    if (this->pos <= this->my_servers[_index].get_locations().size() && this->pos >= 0)
+        target_file  = this->my_servers[_index].get_locations()[this->pos].get_location_path();
+    else
+        target_file = "";
     this->my_Res << "HTTP/1.1 200 OK\r\n";
-    this->my_Res << "Date: "<< this->get_date() << "\r\n";
+    this->my_Res << "Date: " << my_date << "\r\n";
     this->my_Res << "Server: Webserv/4.2.0\r\n";
+    delete []my_date;
 }
 
-int                        Response::handle_dir_response(std::string target_file)
+int                        Response::search_dir_in_locations(std::string path)
 {
-    if (std::count(target_file.begin(), target_file.end(), '/') > 1)
+    std::string target;
+
+    for(int i=0;i < this->my_servers[_index].get_locations().size() ; i++)
     {
-        if (!this->my_servers[_index].get_locations()[this->pos].get_autoindex())
+        target = this->my_servers[_index].get_locations()[i].get_location_path();
+        if (path == target)
         {
-            error_handling("403 Forbidden");
-            return 0;
+            this->pos = i;
+            return 1;
         }
-        if (!check_dir(this->abs_path))
-        {
-            error_handling("500 Internal Server Error");
-            return 0;
-        }
-        this->my_Res << "Content-Type: text/html\r\n";
-        this->my_Res << "Content-Length: " << dir_list.length() << "\r\n\r\n";
-        this->my_Res << this->dir_list;
-        this->set_hello(this->my_Res.str());
-        this->total_size = this->my_Res.str().size();
-        return 0;
-    }
-    else
-    {
-        error_handling("404 not found");
-        this->set_hello(this->my_Res.str());
-        this->total_size = this->my_Res.str().size();
-        return 0;
     }
     return 0;
 }
 
-int                       Response::handle_special_dir(std::string target_file, struct stat &status, std::string & body)
+void                       Response::Edit_path()
 {
-    body = this->my_servers[_index].get_locations()[this->pos].get_root() + "/" + this->my_servers[_index].get_index()[0];
-    if (stat(body.c_str(), &status) < 0)
-    {
-        error_handling("403 Forbidden");
-    }
-    else
-    {
-        this->my_Res << "Content-Type: text/html\r\n";
-        this->my_Res << "Content-Length: " << status.st_size << "\r\n\r\n";
-        get_body(body);
-        this->set_hello(this->my_Res.str());
-        this->total_size = this->my_Res.str().size();
-    }
-    return 0;
+    if (this->abs_path[this->abs_path.size() - 1] != '/')
+        this->abs_path += "/";
 }
 
-int                        Response::handle_dir(std::string target_file, std::string body, struct stat &status)
-{
-    if (target_file != "/")  
-        return handle_dir_response(target_file);
-    else if (this->my_servers[_index].get_locations()[this->pos].get_location_path() == "/")
-        return handle_special_dir(target_file, status, body);
-    else
-    {
-        if (!this->my_servers[_index].get_locations()[this->pos].get_autoindex())
-        {
-            error_handling("403 Forbidden");
-            return 0;
-        }
-        if (!check_dir(this->abs_path))
-        {
-            error_handling("500 Internal Server Error");
-            return 0;
-        }
-        this->my_Res << "Content-Type: text/html\r\n";
-        this->my_Res << "Content-Length: " << dir_list.length() << "\r\n";
-        body = "";
-        return 1;
-    }
-    return 1;
-}
+
 
 void                        Response::handle_file(struct stat &status)
 {
-    std::string file_type;
-    std::string ok;
+    std::string     file_type;
+    std::string     ok;
 
     file_type = get_file_type(this->abs_path);
     this->my_Res << "Content-Type: " << file_type << "\r\n";
     this->my_Res << "Content-Length: " << status.st_size << "\r\n\r\n";
-    this->body_size = get_body(this->abs_path);  
+    this->body_size = get_body(this->abs_path);
 } 
 
 size_t                      Response::handle_Get_response(void)
@@ -492,30 +470,133 @@ size_t                      Response::handle_Get_response(void)
     fd = -1;
     if ((fd = open(this->abs_path.c_str(), O_RDONLY)) < 0)
         return this->check_errors();
+
     else
     {   
+        close(fd);
         initiate_response(target_file);
         stat(this->abs_path.c_str(), &status);
+
 		if (S_ISDIR(status.st_mode))
         {
-            if (!handle_dir(target_file, "", status))
-            {
-                close(fd);
-                return 0;
-            }
+            this->dir_treatment();
+            return 0;
         }
+
         else
+        {
+            //std::cout << "IS FILE" << std::endl;
             handle_file(status);
+        }
+            
         this->set_hello(this->my_Res.str());
         this->total_size = this->my_Res.str().size();
     }
-    close(fd);
     return this->body_size;
 }
-
-
 
 void                         Response::setIndex(int i)
 {
     _index = i;
+}
+
+int                       Response::search_index_in_location()
+{
+    std::string         body;
+    struct stat         status;
+
+    for(int i=0;i<this->my_servers[_index].get_locations()[this->pos].get_index().size();i++)
+    {
+        body = this->abs_path + this->my_servers[_index].get_locations()[this->pos].get_index()[i];
+        if (stat(body.c_str(), &status) >= 0)
+        {
+            this->abs_path = body;
+            this->handle_file(status);
+            this->set_hello(this->my_Res.str());
+            this->total_size = this->my_Res.str().size();
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int                       Response::search_index_in_server()
+{
+    std::string         body;
+    struct stat         status;
+
+    for(int i=0 ; i < this->my_servers[_index].get_index().size() ; i++)
+    {
+        body = this->abs_path + this->my_servers[_index].get_index()[i];
+        if (stat(body.c_str(), &status) >= 0)
+        {
+            this->abs_path = body;
+            this->handle_file(status);
+            this->set_hello(this->my_Res.str());
+            this->total_size = this->my_Res.str().size();
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void                        Response::special_dir_in_location()
+{
+    if (this->search_index_in_location())
+        return ;
+    if (!this->my_servers[_index].get_locations()[this->pos].get_autoindex())
+    {
+        error_handling("403 Forbidden");
+        return ;
+    }
+    if (!check_dir(this->abs_path))
+    {
+        error_handling("500 Internal Server Error");
+        return ;
+    }
+    this->my_Res << "Content-Type: text/html\r\n";
+    this->my_Res << "Content-Length: " << dir_list.length() << "\r\n\r\n";
+    this->my_Res << this->dir_list;
+    this->set_hello(this->my_Res.str());
+    this->total_size = this->my_Res.str().size();
+}               
+
+void                        Response::special_dir_in_server()
+{
+    if (this->search_index_in_server())
+        return ;
+
+    if (!this->my_servers[_index].get_autoindex())
+    {
+        error_handling("403 Forbidden");
+        return ;
+    }
+
+    if (!check_dir(this->abs_path))
+    {
+        error_handling("500 Internal Server Error");
+        return ;
+    }
+
+    this->my_Res << "Content-Type: text/html\r\n";
+    this->my_Res << "Content-Length: " << dir_list.length() << "\r\n\r\n";
+    this->my_Res << this->dir_list;
+    this->set_hello(this->my_Res.str());
+    this->total_size = this->my_Res.str().size();
+}
+
+void                        Response::special_dir_treatment()
+{
+    if (this->search_dir_in_locations(this->regular_path))
+        this->special_dir_in_location();
+    else
+        this->special_dir_in_server();
+}
+
+void                        Response::dir_treatment()
+{
+    if (this->search_dir_in_locations(this->regular_path))
+        this->special_dir_in_location();
+    else
+        this->special_dir_in_server();
 }

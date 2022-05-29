@@ -81,13 +81,25 @@ bool Conf::isNumber(std::string & s)
 
 std::map<std::string, std::string>      Conf::get_redirection(void)
 {
-    for (std::map<std::string, std::string>::iterator it = this->redirection.begin(); it != this->redirection.end(); it++)
-    {
-		std::cout << "\t\t\t\t" << (*it).first  << "\t" << (*it).second  <<  std::endl;
-	}
-    std::cout << std::endl;
+    // for (std::map<std::string, std::string>::iterator it = this->redirection.begin(); it != this->redirection.end(); it++)
+    // {
+	// 	std::cout << "\t\t\t\t" << (*it).first  << "\t" << (*it).second  <<  std::endl;
+	// }
+    // std::cout << std::endl;
     return this->redirection;
 }
+
+int                                      Conf::get_redirection_value(std::string c)
+{
+    for (std::map<std::string, std::string>::iterator it = this->redirection.begin(); it != this->redirection.end(); it++)
+    {
+        if ((*it).second == c)
+            return 1;
+		//std::cout << "\t\t\t\t" << (*it).first  << "\t" << (*it).second  <<  std::endl;
+	}
+    return 0;
+}
+
 
 int                                     Conf::get_client_max_body_size(void)
 {

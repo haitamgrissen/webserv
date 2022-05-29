@@ -38,8 +38,8 @@ void    splitting_it(char *test)
     char *ok = strtok(test, ": ");
     char *ptr = strtok(NULL, " ");
 
-    //std::cout << ok << std::endl;
-    //std::cout << ptr << std::endl;
+    std::cout << ok << std::endl;
+    std::cout << ptr << std::endl;
 }
 
     // int main(int argc, char const *argv[])

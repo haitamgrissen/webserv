@@ -41,16 +41,14 @@ Servers::Servers(void)
 void               Servers::parse_server(std::string name)
 {
     std::string     buff;
-    int j;
     std::ifstream   file(name);
-    Location        *ok = new Location;
     Cgi             ok_cgi;
+    Location        *ok = new Location;
     Conf            *my_conf = new Conf();
 
     my_conf->set_location_block(0);
     my_conf->set_cgi_block(0);
     this->server_block = 0;
-    // getline(file, buff);
     while(getline(file, buff))
     {
         std::string     str;
@@ -100,15 +98,17 @@ void               Servers::parse_server(std::string name)
             if (my_conf->get_location_block() == 1)
             {
                 my_conf->parse_location(tokens, *ok);
-            }
-                
+            }                
             else if (my_conf->get_cgi_block() == 1)
                 my_conf->parse_Cgi(tokens, ok_cgi);
             else
                 my_conf->parse_server(tokens);
             empty_line = 0;        
         }
-    } 
+    }
+    delete ok;
+    delete my_conf;
+    file.close();
 }
 
 std::vector<Conf>               Servers::get_server()
@@ -119,19 +119,3 @@ std::vector<Conf>               Servers::get_server()
 Servers::~Servers(void)
 {
 }
-
-// int main()
-// {
-//     // Servers ok("conf");
-
-//     // std::vector<Conf> my_servers = ok.get_server();
-
-
-//     // std::cout << my_servers.size() << std::endl;
-//     // for(int i=0; i < my_servers.size();i++)
-//     // {
-//     //     std::cout << "----------------------------" << std::endl;
-//     //     my_servers[i].show_servers();
-//     // }
-    
-// }
