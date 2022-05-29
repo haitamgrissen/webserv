@@ -24,7 +24,7 @@ class	_body
 				}
 				~_body()
 				{
-					//_body_file.close();
+					_body_file.close();
 				}
 				HttpRequest			_http;
 				std::ostringstream  _body_stream;

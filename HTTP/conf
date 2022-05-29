@@ -1,5 +1,5 @@
 Server {
-    listen             127.0.0.1 8082
+    listen             127.0.0.1 8083
     root             ./HTTP
     allow_methods      GET POST 
 
@@ -16,13 +16,13 @@ Server {
     autoindex off
 
     
-    redirection    /youtube             www.youtube.com
+    redirection    youtube   www.youtube.com
     redirection    /ok 3yqti
 
     
     location {
         root ./HTTP
-        path /PATH03/nadi.png
+        path /PATH03/res.mp4
         autoindex on
         allow_methods  POST GET
     }
@@ -37,7 +37,7 @@ Server {
         root ./HTTP
         path /PATH03/body.png
         autoindex on
-        allow_methods DELETE POST GET
+        allow_methods DELETE POST 
     }
 
     location {
@@ -57,7 +57,7 @@ Server {
 }
 
 Server {
-    listen             127.0.0.1 8089
+    listen             127.0.0.1 8086
     root             ./HTTP
     allow_methods      GET POST 
 
@@ -85,7 +85,6 @@ Server {
         allow_methods  GET POST
     }
     
-
     location {
         root ./HTTP
         path /PATH03/

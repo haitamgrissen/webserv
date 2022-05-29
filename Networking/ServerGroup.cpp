@@ -228,7 +228,10 @@ void					ServerGroup::start()
 						{
 							FD_CLR(i, & _masterfds);
 							if (it != _requests_map.end())
+							{
+								delete it->second;
 								_requests_map.erase(it); //_requests_map; equivalent 
+							}
 							close(i);
 						}
 						else if (flag >= 0)
@@ -266,27 +269,33 @@ void					ServerGroup::start()
 					}
 					else if (FD_ISSET(i, &_writeset)) // connection is ready to be written to
 					{
-						int flag;
 						std::map<int, _body *>::iterator it;
-						Server 	*servr;
-						_body	*bd;
 						it = _requests_map.find(i);
 						if (it == _requests_map.end())
 						{
 							std::cout << "ERROR IN SERVERS MAP response\n";
 							FD_CLR(i, & _masterwritefds);
        						close(i);
+							continue ;
 						}
-						servr = (it)->second->srvr;
-
-						bd = (it)->second;
-						flag = servr->send(i, bd);
-
-						if (flag == 0)
+						else
 						{
-							_requests_map.erase(it);
-							FD_CLR(i, & _masterwritefds);
-       						close(i);
+							int flag;
+							Server 	*servr;
+							_body	*bd;
+
+							servr = (it)->second->srvr;
+
+							bd = (it)->second;
+							flag = servr->send(i, bd);
+
+							if (flag == 0)
+							{
+								delete it->second;
+								_requests_map.erase(it);
+								FD_CLR(i, & _masterwritefds);
+								close(i);
+							}
 						}
 
 
@@ -323,6 +332,7 @@ void					ServerGroup::stop()
 {
 	
 }
+
 bool ServerGroup::is_number(std::string s)
 {
     std::string::const_iterator it = s.begin();
@@ -499,15 +509,14 @@ void	ServerGroup::resetFDCap()
 		it1++;
 	}
 
-	std::map<int, Server *>::iterator it;
-	it = _client_fds.begin();
-	while (it != _client_fds.end())
+	std::map<int, _body *>::iterator it;
+	it = _requests_map.begin();
+	while (it != _requests_map.end())
 	{
 		if (_fd_cap < it->first)
 			_fd_cap = it->first;
 		it++;
 	}
-	
 }
 
 /*

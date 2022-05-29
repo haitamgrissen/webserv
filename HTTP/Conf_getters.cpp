@@ -89,15 +89,15 @@ std::map<std::string, std::string>      Conf::get_redirection(void)
     return this->redirection;
 }
 
-int                                      Conf::get_redirection_value(std::string c)
+std::string                             Conf::get_redirection_value(std::string c)
 {
     for (std::map<std::string, std::string>::iterator it = this->redirection.begin(); it != this->redirection.end(); it++)
     {
-        if ((*it).second == c)
-            return 1;
-		//std::cout << "\t\t\t\t" << (*it).first  << "\t" << (*it).second  <<  std::endl;
+        std::cout << "\t\t\t\t" << (*it).first  << " " << c  << "|" << std::endl;
+        if ((*it).first == c)
+            return (*it).second;
 	}
-    return 0;
+    return "";
 }
 
 

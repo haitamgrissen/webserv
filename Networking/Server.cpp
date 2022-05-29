@@ -159,7 +159,7 @@ int		Server::send(int sock)
 
 int		Server::send(int sock, _body * bd)
 {
-		std::string	my_method;
+	std::string	my_method;
 	std::string	my_chunk;
 	int			my_len;
 	std::string	error_msg;
@@ -171,10 +171,14 @@ int		Server::send(int sock, _body * bd)
 	if (bd->_startedwrite == false)
 		bd->_startedwrite = true;
 	red_target = request_target.substr(request_target.find_last_of("/") + 1, request_target.size());
-	if (bd->_ok.get_server(_index).get_redirection_value(red_target))
+	
+	red_target = bd->_ok.get_server(_index).get_redirection_value(red_target);
+	//td::cout << red_target << std::endl;
+	if (red_target != "")
 	{
-		request_target = red_target;
-		bd->_ok.set_request_target(request_target);
+		//std::cout << "Here " << std::endl;
+		//request_target = red_target;
+		bd->_ok.set_request_target(red_target);
 		bd->_ok.handle_redirect_response(bd->_http.get_value("Connection"));
 	}
 	else if (my_method == "POST" && ((my_len < 0) || (bd->_body_stream.str() == "" && my_len != 0)))

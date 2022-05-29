@@ -63,7 +63,7 @@ class Conf
         std::map<int, std::string>              get_error_page(void);
         std::string                             get_error(int c);
         std::map<std::string, std::string>      get_redirection(void);
-        int                                     get_redirection_value(std::string c);
+        std::string                              get_redirection_value(std::string c);
         int                                     get_client_max_body_size(void);
         bool                                    get_autoindex(void);
         std::vector<Location>                   get_locations(void);
