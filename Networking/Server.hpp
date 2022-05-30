@@ -10,9 +10,10 @@ class Server;
 class	_body
 		{
 			public :
-				_body()
+				_body(int fd)
 				{
-					_body_file.open("body.txt", std::ios::out);
+					_client_fd = fd;
+					_body_file.open("body" + std::to_string(_client_fd) +  ".txt", std::ios::out);
 					_body_size = 0;
 
 					_readcount = 0;
@@ -21,9 +22,13 @@ class	_body
 
 					_startedwrite = false;
 					_startedread = false;
+					_http.set_body_ind(_client_fd);
 				}
 				~_body()
 				{
+					std::string body_location = "body" + std::to_string(_client_fd) +  ".txt";
+					remove(body_location.c_str());
+					//this->_ok.clear();
 					_body_file.close();
 				}
 				HttpRequest			_http;
@@ -38,7 +43,18 @@ class	_body
 				bool				_startedread;
 				bool				_startedwrite;
 				int					_red_flag;
+
+				int					_client_fd;
 				
+
+
+
+
+
+				///////ayoub
+				std::string response;
+				//////
+
 				void				close_file()
 				{
 					_body_file.close();
@@ -65,12 +81,11 @@ class	_body
 					this->_ok.set_request_target(this->_http.Get_Request_Target());
 					this->_ok.set_mybuffer(this->_http.Get_Request_Target());
 					this->_ok.check_file();
-					error_msg = this->_ok.parsing_check();
 				}
 
 				int				handle_body(std::string my_method, std::string my_chunk, std::string error_msg, int my_len)
 				{
-					this->set_values(my_method, error_msg);
+					// this->set_values(my_method, error_msg);
 					this->_http.set_my_upload_path(this->_ok.get_my_upload_path());	
 					if (my_method == "POST")
 					{
@@ -131,6 +146,12 @@ class Server
 		void		setIndex(int i);
 		int			getIndex();
 
+
+
+
+		///////ayoub
+		int		CGI_D_ayoub(_body * bd, std::string	request_target, std::string	my_method);
+		///////ayoub
 
 
 		//CONSTRUCTORS AND OVERLOADS

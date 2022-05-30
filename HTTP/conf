@@ -37,7 +37,7 @@ Server {
         root ./HTTP
         path /PATH03/body.png
         autoindex on
-        allow_methods DELETE POST 
+        allow_methods DELETE POST GET
     }
 
     location {
@@ -47,11 +47,10 @@ Server {
         allow_methods DELETE POST GET
     }
 
-    cgi 
+    cgi .py
     {
-        path = .php
         allow_methods      POST
-        cgi_path         /Volumes/SPYDERSY/webserv/cgi-bin/php-cgi
+        cgi_path         /usr/local/bin/python3
     }
 
 }
@@ -91,10 +90,10 @@ Server {
         autoindex on
         allow_methods GET  POST
     } 
-    cgi .php
+    cgi .py
     {
         allow_methods      POST
-        cgi_path         /Volumes/SPYDERSY/webserv/cgi-bin/php-cgi
+        cgi_path         /usr/local/bin/python3
     }
 
     client_max_body_size 4343

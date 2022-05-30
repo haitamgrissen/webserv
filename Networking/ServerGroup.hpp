@@ -63,7 +63,7 @@ class ServerGroup
 
 
 
-	std::map<int, Server *>			_client_fds;
+	//std::map<int, Server *>			_client_fds;
 	std::map<int, Server *>			_servers_map;
 
 	std::map<std::string , VirtualServer *>			_servername_map;

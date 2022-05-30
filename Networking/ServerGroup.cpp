@@ -135,30 +135,6 @@ void					ServerGroup::build()
 				_fd_cap = fd;
 		}
 	}
-
-
-	// for (int i = 0; i < _servercount; i++)
-	// {
-	// 	Server		*currentsrv = new Server();
-	// 	int			fd;
-
-	// 	std::string host = my_confs[i].get_host();
-	// 	int port = my_confs[i].get_Port();
-	// 	std::string name = my_confs[i].get_server_name();
-	// 	std::cout << "server name : " << name << std::endl;
-	// 	currentsrv->setSocket(host, port);
-	// 	currentsrv->setName(name);
-	// 	if (currentsrv->Create() != -1)
-	// 	{
-	// 		fd = currentsrv->getsocketfd();
-	// 		FD_SET(fd, &_masterfds);
-	// 		_servers_map.insert(std::make_pair(fd, currentsrv));
-	// 		currentsrv->setIndex(i);	
-
-	// 		if (fd > _fd_cap)
-	// 			_fd_cap = fd;
-	// 	}
-	// }
 	if (_fd_cap == 0)
 		throw BuildException();
 }
@@ -176,7 +152,10 @@ void					ServerGroup::start()
 		//resetFDCap();
 
 		if (select((int)_fd_cap + 1, &_readset, &_writeset, NULL, &timetostop) < 0)
-			throw SelectException();
+		{
+			//continue ;
+		}
+			//throw SelectException();
 		for (size_t i = 0; i <= _fd_cap ; i++)
 		{
 			if (FD_ISSET(i, &_writeset) || FD_ISSET(i, &_readset))
@@ -191,26 +170,6 @@ void					ServerGroup::start()
 						if (new_socket > _fd_cap)
 							_fd_cap = new_socket;
 					}
-					
-					// //accept connection
-					// std::map<int, Server *>::iterator it;
-					// it = _servers_map.find(i);
-					// if (it ==  _servers_map.end())
-					// {
-					// 	std::cout << "ERROR IN SERVERS MAP accept\n";
-					// 	//exit(EXIT_FAILURE);
-					// }
-					// std::cout << "fd : " << it->second->getsocketfd() << " index : " << it->second->getIndex() << std::endl;
-					// int new_socket = (it)->second->accept();
-					// if (new_socket > 0)
-					// {
-					// 	std::cout << "connection is accepted : " << new_socket << std::endl;
-					// 	FD_SET(new_socket, &_masterfds);
-					// 	if (new_socket > _fd_cap)
-					// 		_fd_cap = new_socket;
-
-					// 	_client_fds.insert(std::make_pair(new_socket, it->second));
-					// }
 				}
 				else
 				{
@@ -220,52 +179,16 @@ void					ServerGroup::start()
 						int flag ;
 						flag = recvCon(i);
 
-						std::map<int , _body *>::iterator it;
-						it = _requests_map.find(i);
-
-
 						if (flag == -1)
 						{
 							FD_CLR(i, & _masterfds);
-							if (it != _requests_map.end())
-							{
-								delete it->second;
-								_requests_map.erase(it); //_requests_map; equivalent 
-							}
-							close(i);
+							//close(i);
 						}
-						else if (flag >= 0)
+						else if (flag == 0)
 						{
 							FD_CLR(i, & _masterfds);
 							FD_SET(i, & _masterwritefds);
 						}
-
-						// int flag;
-						// std::map<int, Server *>::iterator it;
-						// it = _client_fds.find(i);
-						// if (it == _client_fds.end())
-						// {
-						// 	std::cout << "ERROR IN SERVERS Client MAP\n";
-						// 	exit(EXIT_FAILURE);
-						// }
-
-						// flag = (it)->second->recv(i);
-						// if (flag == -1)
-						// {
-						// 	FD_CLR(i, & _masterfds);
-						// 	_client_fds.erase(it);
-						// 	close(i);
-						// }
-						// else if (flag >= 0)
-						// {
-						// 	FD_CLR(i, & _masterfds);
-						// 	FD_SET(i, & _masterwritefds);
-						// }
-											// else if (flag > 0)
-											// {
-											// 	FD_CLR(i, & _masterfds);
-											// 	FD_SET(i, & _masterwritefds);
-											// }
 					}
 					else if (FD_ISSET(i, &_writeset)) // connection is ready to be written to
 					{
@@ -275,7 +198,7 @@ void					ServerGroup::start()
 						{
 							std::cout << "ERROR IN SERVERS MAP response\n";
 							FD_CLR(i, & _masterwritefds);
-       						close(i);
+       						//close(i);
 							continue ;
 						}
 						else
@@ -288,41 +211,46 @@ void					ServerGroup::start()
 
 							bd = (it)->second;
 							flag = servr->send(i, bd);
-
-							if (flag == 0)
+							if (flag == -1 )
 							{
-								delete it->second;
-								_requests_map.erase(it);
 								FD_CLR(i, & _masterwritefds);
-								close(i);
+								// close(i);
+							}
+							else if (flag == 0)
+							{
+								FD_CLR(i, & _masterwritefds);
+								// close(i);
 							}
 						}
-
-
-						// std::map<int, Server *>::iterator it;
-						// it = _client_fds.find(i);
-						// if (it == _client_fds.end())
-						// {
-						// 	std::cout << "ERROR IN SERVERS MAP response\n";
-						// 	FD_CLR(i, & _masterwritefds);
-       					// 	close(i);
-						// 	//exit(EXIT_FAILURE);
-						// }
-						// int flag;
-						// flag = (it)->second->send(i);
-
-						// if (flag == 0)
-						// {
-						// 	_client_fds.erase(it);
-						// 	FD_CLR(i, & _masterwritefds);
-       					// 	close(i);
-						// }
 					}
 				}
 			}
 			else
 			{
+				std::map<int , _body *>::iterator it;
+				it = _requests_map.find(i);
+				if (it != _requests_map.end())
+				{
+					if (it->second)
+						delete it->second;
+					_requests_map.erase(it);
+					close(i);
 
+				}
+				// else
+				// {
+				// 	std::map<int, Server *>::iterator it1;
+				// 	it1 = _servers_map.begin();
+				// 	int max = 3;
+				// 	while(it1 != _servers_map.end())
+				// 	{
+				// 		if (it1->first > max)
+				// 			max = it1->first;
+				// 		it1++;
+				// 	}
+				// 	if (i > max)
+				// 		close (i);
+				// }
 			}
 		}
 	}
@@ -368,59 +296,6 @@ Server	*ServerGroup::getHostServer(std::string servername, std::string host , in
 		it++;
 	}
 	return NULL;
-
-	/*
-	// std::map<std::string , VirtualServer *>::iterator it;
-	// std::vector<Server *>::iterator it3;
-
-	// // if (servername != host)
-	// if (!is_number(servername))
-	// {
-	// 	std::cout << "hello" <<std::endl;
-	// 	it = _servername_map.find(servername);
-	// 	if (it == _servername_map.end())
-	// 		std::cout << "flewla " << std::endl;
-
-	// 	it3 = it->second->_virtual_server_list.begin();
-
-	// 	if (it3 == it->second->_virtual_server_list.end())
-	// 		std::cout << "ftalta " << std::endl;
-
-	// 	while (it3 != it->second->_virtual_server_list.end())
-	// 	{
-
-	// 		if (servername == (*it3)->getName())
-	// 		{
-	// 			std::cout << "request host : " << host << std::endl;
-	// 			std::cout << "request port : " << port << std::endl;
-	// 			std::cout << "request name : " << servername << std::endl;
-	// 			return ((*it3));
-	// 		}
-	// 		it3++;
-	// 	}
-	// 	return (NULL);
-	// }
-	// else 
-	// {
-	// 	std::map<int, Server *>::iterator it4;
-	// 	it4 = _servers_map.begin();
-	// 	while (it4 != _servers_map.end())
-	// 	{
-	// 		////////////////
-	// 		if (it4->second->getHost() == host && it4->second->getPort() == port)
-	// 		{
-	// 			std::cout << "request host : " << host << std::endl;
-	// 			std::cout << "request port : " << port << std::endl;
-	// 			std::cout << "request name : " << servername << std::endl;
-	// 			return (it4->second);
-	// 		}
-	// 		it++;
-	// 	}
-	// }
-	// return (NULL);
-
-	*/
-	
 }
 
 int		ServerGroup::recvCon(int fd)
@@ -438,7 +313,7 @@ int		ServerGroup::recvCon(int fd)
 		std::string tmp_host;
 		int			tmp_port;
 
-		bd = new _body();
+		bd = new _body(fd); 
 		flag = bd->_http.handle_http_request(fd, bd->_body_file, bd->_body_size, bd->_body_stream);
 		tmp_servername = bd->_http.get_my_host();
 		tmp_host = bd->_http.get_my_host();
@@ -498,25 +373,38 @@ bool	ServerGroup::isServerFD(int fd)
 
 void	ServerGroup::resetFDCap()
 {
-	std::map<int, Server *>::iterator it1;
-	it1 = _servers_map.begin();
-	_fd_cap = 0;
+	// std::map<int, Server *>::iterator it1;
+	// it1 = _servers_map.begin();
+	// int max = 3;
 
-	while (it1 != _servers_map.end())
+	// while (it1 != _servers_map.end())
+	// {
+	// 	if (max < it1->first)
+	// 		max = it1->first;
+	// 	it1++;
+	// }
+	if (!_servers_map.empty())
 	{
-		if (_fd_cap < it1->first)
-			_fd_cap = it1->first;
-		it1++;
+		std::map<int, Server *>::iterator it1 = _servers_map.end();
+		it1--;
+		_fd_cap = it1->first;
 	}
-
-	std::map<int, _body *>::iterator it;
-	it = _requests_map.begin();
-	while (it != _requests_map.end())
+	if (!_requests_map.empty())
 	{
-		if (_fd_cap < it->first)
-			_fd_cap = it->first;
-		it++;
+		std::map<int, _body *>::iterator it = _requests_map.end();
+		it--;
+		_fd_cap = it->first;
+	// std::map<int, _body *>::iterator it;
+	// it = _requests_map.begin();
+	// while (it != _requests_map.end())
+	// {
+	// 	if (max < it->first)
+	// 		max = it->first;
+	// 	it++;
+	// }
 	}
+	_fd_cap += 5;
+	//_fd_cap = max;
 }
 
 /*

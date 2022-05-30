@@ -119,7 +119,7 @@ void            HttpRequest::parse_line(std::string buff)
 
 void            HttpRequest::handle_regular_body(void)
 {
-    std::ifstream   file_2("body.txt");
+    std::ifstream   file_2("body" + std::to_string(this->body_ind) +".txt");
     std::fstream    result_file;
     std::string     str;
     std::string     file_type;
@@ -148,7 +148,7 @@ std::string     HttpRequest::get_file_type(void)
 
 int            HttpRequest::handle_chunked_body(void)
 {
-    std::ifstream       file_2("body.txt");
+    std::ifstream       file_2("body" + std::to_string(this->body_ind) +".txt");
     std::fstream        result_file;
     int                 my_total = 0;
     std::string         str;
@@ -197,6 +197,12 @@ HttpRequest::HttpRequest(void)
     this->content_length = 0;
     this->tranfer_encoding = "";
     this->total_size = 0;
+    this->body_ind = 0;
+}
+
+void            HttpRequest::set_body_ind(int c)
+{
+    this->body_ind = c;
 }
 
 void            HttpRequest::set_header(std::map<std::string, std::string> c)

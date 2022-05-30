@@ -247,13 +247,17 @@ bool                        Response::check_dir(std::string path)
             stat((path + buff).c_str(), &status);
             if (S_ISDIR(status.st_mode)) // check if its another directory 
                 buff += "/"; // add / so we can recheck on it afterwards;
+            time_t	now = time(0);
+	        char	*date = new char[30]();
+	        strftime(date, 29, "%a, %d %b %Y %T %Z", gmtime(&now));
             my_html_page << "<a href=\"" << buff << "\">" << buff << "</a>"; 
-            my_html_page << std::setw(62 - buff.length()) << this->get_date();
+            my_html_page << std::setw(62 - buff.length()) << date;
             if(S_ISDIR(status.st_mode))
 				my_html_page << std::setw(21) << std::right << "-\n";
 			else{
 				my_html_page << std::setw(20) << status.st_size << std::endl;
 			}
+            delete[] date;
         }
         my_html_page << "</pre><hr></body>\n</html>";
         this->dir_list = my_html_page.str();
@@ -269,11 +273,14 @@ void               Response::error_handling(std::string error)
     std::string         error_page;
     std::string         Error_ind;
     struct stat			status;
+    time_t	now = time(0);
+    char	*date = new char[30]();
+    strftime(date, 29, "%a, %d %b %Y %T %Z", gmtime(&now));
 
     Error_ind = error.substr(0, 3);
     error_page = genErrorPage(std::stoi(Error_ind), error.substr(4, error.size()));
     my_Res_error << "HTTP/1.1 " << error << std::endl;
-    my_Res_error << "Date: "<< this->get_date() << std::endl;
+    my_Res_error << "Date: "<< date << std::endl;
     my_Res_error << "Server: Webserv/4.4.0" << std::endl;
     stat(error_page.c_str(), &status);
     my_Res_error << "Content-Type: text/html\r\n";
@@ -283,6 +290,7 @@ void               Response::error_handling(std::string error)
     my_Res_error << this->get_error_body(error_page);
     this->set_hello(my_Res_error.str());
     this->total_size = my_Res_error.str().size();
+    delete[] date;
 }
 
 std::string                 Response::get_my_upload_path(void)
@@ -309,9 +317,10 @@ void                        Response::handle_delete_response(std::string connect
     else
     {
         struct stat         status;
-        char*               date;
 
-        date = this->get_date();
+        time_t	now = time(0);
+	    char	*date = new char[30]();
+	    strftime(date, 29, "%a, %d %b %Y %T %Z", gmtime(&now));
         this->my_Res << "HTTP/1.1 204 No Content\r\n";
         this->my_Res << "Date: "<< date << "\r\n";
         this->my_Res << "Server: Webserv/4.4.0\r\n";
@@ -334,9 +343,12 @@ std::string                 Response::get_redirect_path(void)
 void                        Response::handle_redirect_response(std::string c)
 {
     struct stat         status;
+    time_t	now = time(0);
+	char	*date = new char[30]();
+	strftime(date, 29, "%a, %d %b %Y %T %Z", gmtime(&now));
 
     this->my_Res << "HTTP/1.1 301 Moved Permanently\r\n";
-    this->my_Res << "Date: "<< this->get_date() << "\r\n";
+    this->my_Res << "Date: "<< date << "\r\n";
     this->my_Res << "Server: Webserv/4.4.0\r\n";
     this->my_Res << "Location: " << "https://" + this->get_request_target() + "/"  << "\r\n"; 
     this->my_Res << "Connection: close" << "\r\n\r\n";
@@ -344,20 +356,24 @@ void                        Response::handle_redirect_response(std::string c)
     std::cout << this->my_Res.str() << std::endl;
     //std::cout << this->my_Res.str() << std::endl;
     this->set_hello(this->my_Res.str());    
+    delete[] date;
 }
 
 void                        Response::handle_post_response(std::string connection)
 {
     struct stat         status;
+    time_t	now = time(0);
+	char	*date = new char[30]();
+	strftime(date, 29, "%a, %d %b %Y %T %Z", gmtime(&now));
 
     this->my_Res << "HTTP/1.1 201 Created\r\n";
-    this->my_Res << "Date: "<< this->get_date() << "\r\n";
+    this->my_Res << "Date: "<< date << "\r\n";
     this->my_Res << "Server: Webserv/4.4.0\r\n";
     this->my_Res << "Location: " << this->get_my_upload_path() + "\r\n"; 
     this->my_Res << "Connection: " << connection  << "\r\n\r\n";
     // this->my_Res << "Transfer-Encoding: chunked\r\n"; 
     // this->my_Res << "0\r\n\r\n" << std::endl;
-
+    delete[] date;
     this->total_size = this->my_Res.str().size();
     std::cout << this->my_Res.str() << std::endl;
     this->set_hello(this->my_Res.str());
@@ -373,16 +389,16 @@ size_t                      Response::get_total_size(void)
     return this->total_size;
 }
 
-std::string                 Response::parsing_check(void)
+std::string                 Response::parsing_check(std::string target_file)
 {
     struct stat	              status;
-    std::string               target_file;
     std::string               my_location_path;
     std::vector<std::string>  location_methods;
+    std::string               error;
 
-    target_file = this->req_target;
     for(int i=0; i < this->my_servers[_index].get_location_count() ; i++)
     {
+        
         my_location_path = this->my_servers[_index].get_locations()[i].get_location_path();
         this->my_upload_path = this->my_servers[_index].get_upload_path();
         if ((target_file == my_location_path) || (target_file == my_location_path + "/"))
@@ -410,18 +426,18 @@ int                        Response::check_errors()
 
 void                        Response::initiate_response(std::string & target_file)
 {
-    char        *my_date;
-
-    my_date = this->get_date();
+    time_t	now = time(0);
+	char	*date = new char[30]();
+	strftime(date, 29, "%a, %d %b %Y %T %Z", gmtime(&now));
     this->total_size = 0;
     if (this->pos <= this->my_servers[_index].get_locations().size() && this->pos >= 0)
         target_file  = this->my_servers[_index].get_locations()[this->pos].get_location_path();
     else
         target_file = "";
     this->my_Res << "HTTP/1.1 200 OK\r\n";
-    this->my_Res << "Date: " << my_date << "\r\n";
+    this->my_Res << "Date: " << date << "\r\n";
     this->my_Res << "Server: Webserv/4.2.0\r\n";
-    delete []my_date;
+    delete []date;
 }
 
 int                        Response::search_dir_in_locations(std::string path)
@@ -482,10 +498,7 @@ size_t                      Response::handle_Get_response(void)
         }
 
         else
-        {
-            std::cout << "IS FILE" << std::endl;
             handle_file(status);
-        }
             
         this->set_hello(this->my_Res.str());
         this->total_size = this->my_Res.str().size();
@@ -597,4 +610,34 @@ void                        Response::dir_treatment()
         this->special_dir_in_location();
     else
         this->special_dir_in_server();
+}
+
+
+std::string Response::parse_response_cgi(std::string ret)
+{
+    std::string fake_header;
+    std::string real_header;
+    std::string body;
+    int size;
+    int startindicator;
+    int endindicator;
+    int pos;
+    pos = ret.find("\n\r\n");
+    fake_header = ret.substr(0,pos + 1);
+    body = ret.substr(pos + 1, EOF);
+   // std::cout  << "|||||" << body << "||||" << std::endl;
+   
+    if ( (startindicator = fake_header.find("HTTP/1.1")) == -1 )
+        real_header += "HTTP/1.1 200 OK\n";
+    else
+
+        real_header += fake_header.substr(startindicator,fake_header.find("\n",startindicator) + 1);
+     if ( (startindicator = fake_header.find("Content-type")) == -1 )
+        real_header += "Content-type:text/html\n";
+    else
+        real_header += fake_header.substr(startindicator,fake_header.find("\n",startindicator) + 1);
+
+    real_header += "Server: petitwebserv\n";
+    real_header += "Content-Length: " + std::to_string(body.size()) + "\n\r\n";
+        return real_header + body;
 }

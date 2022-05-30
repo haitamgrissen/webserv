@@ -93,7 +93,7 @@ std::string                             Conf::get_redirection_value(std::string 
 {
     for (std::map<std::string, std::string>::iterator it = this->redirection.begin(); it != this->redirection.end(); it++)
     {
-        std::cout << "\t\t\t\t" << (*it).first  << " " << c  << "|" << std::endl;
+        //std::cout << "\t\t\t\t" << (*it).first  << " " << c  << "|" << std::endl;
         if ((*it).first == c)
             return (*it).second;
 	}

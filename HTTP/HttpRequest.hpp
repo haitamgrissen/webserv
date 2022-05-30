@@ -23,6 +23,7 @@ class HttpRequest
         std::string                         my_upload_path;
         std::string                         my_host;
         int                                 my_port;
+        int                                 body_ind;
         int                                 total_read;
     public:
         HttpRequest(void);
@@ -50,6 +51,7 @@ class HttpRequest
         std::string     get_my_host(void);
         int             get_my_port(void);
         int             get_content_len();
+        void            set_body_ind(int c);
         bool            isNumber(std::string  s);
         ~HttpRequest(void);
 };

@@ -1,7 +1,6 @@
-GET /PATH03/index.html HTTP/1.1
+GET /cgi-test/scriptt.py?lname=lagrini&fname=ainhajar HTTP/1.1
 Host: 127.0.0.1:8083
 Connection: keep-alive
-Cache-Control: max-age=0
 sec-ch-ua: "Chromium";v="94", "Google Chrome";v="94", ";Not A Brand";v="99"
 sec-ch-ua-mobile: ?0
 sec-ch-ua-platform: "macOS"
