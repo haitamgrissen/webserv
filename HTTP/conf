@@ -29,9 +29,9 @@ Server {
     
     location {
         root ./HTTP
-        path /  
+        path /PATH03/fibo  
         autoindex off
-        allow_methods  POST GET
+        allow_methods  DELETE GET
     }
     location {
         root ./HTTP
@@ -44,7 +44,7 @@ Server {
         root ./HTTP
         path /PATH03/index.html
         autoindex on
-        allow_methods DELETE POST GET
+        allow_methods DELETE POST
     }
 
     cgi .py
@@ -90,10 +90,10 @@ Server {
         autoindex on
         allow_methods GET  POST
     } 
-    cgi .py
+    cgi .php
     {
         allow_methods      POST
-        cgi_path         /usr/local/bin/python3
+        cgi_path         /Volumes/SPYDERSY/webserv/cgi-test/script.py
     }
 
     client_max_body_size 4343

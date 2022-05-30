@@ -24,6 +24,12 @@ int Server::Create()
 	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0)
     	std::cout << "setsockopt(SO_REUSEPORT) failed" << std::endl;
 
+	// linger didnt work!!!!!
+	// linger lin;
+	// lin.l_onoff = 1;
+	// lin.l_linger = 0;
+	// setsockopt(_fd, SOL_SOCKET, SO_LINGER, (const char *)&lin, sizeof(int));
+
 	if (bind(_fd, (struct sockaddr * ) &_addr, sizeof(_addr)) == -1)
 		throw BindException();
 	
@@ -39,6 +45,121 @@ int Server::Create()
 ** --------------------------------- I/O NETWORKING ---------------------------------
 */
 
+int		Server::accept()
+{
+	int clnt;
+	if ((clnt = ::accept(_fd, (struct sockaddr *)&_addr, (socklen_t*)&_addrlen)) < 0)
+    {
+		std::cout << "[   ]" <<  _fd << "[   ]"<< "hello from accept" << std::endl;
+        return (-1);
+    }
+	else
+	{
+		fcntl(clnt, F_SETFL, O_NONBLOCK);
+		_requestmap.insert(std::make_pair(clnt, new _body(_fd)));
+		return (clnt);
+	}
+}
+
+// int		Server::send(int sock)
+// {
+// 	std::map<int, _body *>::iterator	it;
+
+// 	it = _requestmap.find(sock);
+// 	if (it == _requestmap.end())
+// 	{
+// 		std::cout << "ERROR IN Request MAP\n";
+// 		exit(EXIT_FAILURE);
+// 	}
+
+
+// 	_body *bd;
+
+// 	bd = it->second;
+	
+	
+
+// 	if (bd->_http.Get_Http_Method() == "POST")
+// 	{
+// 		bd->_body_file << bd->_body_stream.str() << std::endl;
+// 		bd->_body_file.close();        
+// 	}
+
+
+
+
+
+
+// 	if (it->second->_startedwrite == false)
+// 	{
+// 		it->second->_startedwrite = true;
+// 	}
+
+
+
+// 	bd->_ok.setIndex(_index);
+// 	std::string	error_msg;
+// 	bd->_ok.set_request_method(bd->_http.Get_Http_Method());
+// 	bd->_ok.set_request_target(bd->_http.Get_Request_Target());
+
+
+// 	bd->_ok.set_mybuffer(bd->_http.Get_Request_Target());
+
+// 	bd->_ok.check_file();
+	
+// 	error_msg = bd->_ok.parsing_check();
+// 	///bd->_ok.error_handling(error_msg);
+// 	std::cout << "?????????" << std::endl;
+// 	bd->_http.set_my_upload_path(bd->_ok.get_my_upload_path());
+
+
+// 	if (bd->_http.Get_Http_Method() == "POST" && bd->_http.get_value("Transfer-Encoding") == "chunked")
+// 		bd->_http.handle_chunked_body();
+// 	else if (bd->_http.Get_Http_Method() == "POST")
+// 		bd->_http.handle_regular_body();
+// 	if (bd->_ok.get_max_body_size() < 0)
+// 	{
+// 		bd->_ok.error_handling("500 Webservice currently unavailable");
+// 	}
+// 	else if (bd->_http.get_total_size() > bd->_ok.get_max_body_size() && bd->_ok.get_max_body_size() != 0)
+// 		bd->_ok.error_handling("413 Payload Too Large");
+// 	else
+// 	{
+// 		if (error_msg != "")
+// 			bd->_ok.error_handling(error_msg);
+// 		else
+// 		{
+// 			if (bd->_http.Get_Http_Method() == "GET")
+// 				bd->_body_size = bd->_ok.handle_Get_response();
+// 			else if (bd->_http.Get_Http_Method() == "DELETE")
+// 				bd->_ok.handle_delete_response(bd->_http.get_value("Connection"));
+// 			else if (bd->_http.Get_Http_Method() == "POST")
+// 				bd->_ok.handle_post_response(bd->_http.get_value("Connection"));
+// 		}		
+// 	}	
+
+// 	int flag;
+// 	flag = write(sock , bd->_ok.get_hello() + bd->_writecount , bd->_ok.get_total_size() - bd->_writecount);
+// 	bd->_writecount += flag;
+
+
+// 	if (flag == 0)
+// 	{
+// 		_requestmap.erase(it);
+// 		return 0;
+// 	}
+// 	if (bd->_ok.get_total_size() <= bd->_writecount)
+// 	{
+// 		_requestmap.erase(it);
+// 		return 0;
+// 	}
+// 	else
+// 		return (1);
+
+// }
+
+
+
 int		Server::send(int sock, _body * bd)
 {
 	std::string	my_method;
@@ -53,10 +174,13 @@ int		Server::send(int sock, _body * bd)
 	if (bd->_startedwrite == false)
 		bd->_startedwrite = true;
 	red_target = request_target.substr(request_target.find_last_of("/") + 1, request_target.size());
-	
 	red_target = bd->_ok.get_server(_index).get_redirection_value(red_target);
-	
-	if (red_target != "")
+	error_msg = bd->_ok.pars_check(bd->_http.Get_Request_Target(), bd->_http.Get_Http_Method());
+	if (error_msg != "")
+	{
+		bd->_ok.error_handling(error_msg);
+	}
+	else if (red_target != "")
 	{
 		bd->_ok.set_request_target(red_target);
 		bd->_ok.handle_redirect_response(bd->_http.get_value("Connection"));
@@ -65,11 +189,7 @@ int		Server::send(int sock, _body * bd)
 		bd->_ok.error_handling("400 Bad Request");
 	else
 	{
-		bd->set_values(my_method, error_msg);
-		error_msg = bd->_ok.parsing_check(request_target);
-		if (error_msg != "")
-		 	bd->_ok.error_handling(error_msg);
-		else if (!bd->handle_body(my_method, my_chunk, error_msg, my_len))
+		if (!bd->handle_body(my_method, my_chunk, error_msg, my_len))
 			bd->_ok.error_handling("400 Bad Request");
 		else
 		{
@@ -89,7 +209,7 @@ int		Server::send(int sock, _body * bd)
 	}
 
 
-	////////// ayoub
+	////////// CGI 
 
 	int cgi = CGI_D_ayoub(bd, request_target, my_method);
 
@@ -98,28 +218,35 @@ int		Server::send(int sock, _body * bd)
 	if (cgi == -1)///executable scripte doesn exist 
 	{	
 		std::cout << "404 Not Found" << std::endl;
+		//bd->_ok.error_handling("404 Not Found");
+		cgi = 0;
 		//bd->_ok.error_handling("400 Bad Request");
 		///error  not found exec file 404
 		//return 0;
 	}
 	else if (cgi == -2)
 	{	
-		///bd->_ok.error_handling("500 Webservice currently unavailable");
+		//bd->_ok.error_handling("500 Webservice currently unavailable");
 		///internal SERVER ERROR 500
-		return 0;
+		//return 0;
+		cgi = 0;
 	}
-	else if (cgi == -3)
+	else if (cgi == -3)//time out 
 	{	
 		///bd->_ok.error_handling("500 Webservice currently unavailable");
 		///internal SERVER ERROR 500
-		return 0;
+		//return 0;
+		cgi = 0;
 	}
 
 	//////////
 
-	int flag;
 
-	if (cgi == 0 || cgi < 0)/////yalahuiiiiii
+
+
+	///Send the handeled Respones
+	int flag;
+	if (cgi == 0)/////yalahuiiiiii
 		flag = write(sock , bd->_ok.get_hello() + bd->_writecount , bd->_ok.get_total_size() - bd->_writecount);
 	else
 		flag = write(sock, bd->response.c_str() + bd->_writecount , bd->response.size() - bd->_writecount);
@@ -129,14 +256,38 @@ int		Server::send(int sock, _body * bd)
 
 	bd->_writecount += flag;
 	bd->_ok.clear();
-	if (flag == -1 || flag == 0)
-		return -1;
-	else if (bd->_ok.get_total_size() <= bd->_writecount)
+	bd->close_file();
+	//delete[] bd;
+	if (bd->_ok.get_total_size() <= bd->_writecount)
+	{
+		// _requestmap.erase(it);
 		return 0;
+	}
 	else
 		return (1);
+	
+
 }
 
+
+int		Server::recv(int sock)
+{
+	std::map<int, _body *>::iterator	it;
+	int									flag;
+
+	it = _requestmap.find(sock);
+	if (it ==  _requestmap.end())
+	{
+		std::cout << "couldnt receve request\n";
+		return (-1);//TODO:ghir t9mira 
+	}
+	else
+	{
+		_body *bd = it->second;
+		flag = bd->_http.handle_http_request(sock, bd->_body_file, bd->_body_size, bd->_body_stream);
+		return flag;
+	}
+}
 
 /*
 ** --------------------------------- Modefiers ---------------------------------
@@ -207,12 +358,11 @@ int		Server::send(int sock, _body * bd)
 
 Server::Server()
 {
-	///
+
 }
 
 Server::Server( const Server & src )
 {
-	////
 }
 
 Server::Server(unsigned int host, int port)
@@ -248,6 +398,14 @@ std::ostream &			operator<<( std::ostream & o, Server const & i )
 	//o << "Value = " << i.getValue();
 	return o;
 }
+
+
+
+
+
+
+
+/* ************************************************************************** */
 
 
 
@@ -298,6 +456,12 @@ int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my
 		if (fork_id == -1)
 		{
 			std::cout << "error on fork forking" << std::endl;
+
+			remove("/tmp/test");
+			remove("/tmp/body");
+			close(body);
+			close(fd);
+
 			return (-2);//internal error 500
 		}
 		else if (fork_id == 0)
@@ -386,4 +550,3 @@ int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my
 	}
 	return cgi;
 }
-/* ************************************************************************** */

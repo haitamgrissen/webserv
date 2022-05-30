@@ -39,17 +39,17 @@ std::string                             Cgi::get_cgi_block_path(void)
 
 std::vector <std::string>               Cgi::get_allow_methods(void)
 {
-    for(int i = 0; i < this->Cgi_Allow_methods.size(); i++)
-        std::cout << "|" << Cgi_Allow_methods[i] << "|" ;
-    std::cout << std::endl;
+    // for(int i = 0; i < this->Cgi_Allow_methods.size(); i++)
+    //     std::cout << "|" << Cgi_Allow_methods[i] << "|" ;
+    //std::cout << std::endl;
     return this->Cgi_Allow_methods;
 }
 
 std::vector <std::string>               Cgi::get_index(void)
 {
-    for(int i = 0; i < this->Cgi_Index.size(); i++)
-                 std::cout << "|" << this->Cgi_Index[i] << "|" ;
-    std::cout << std::endl;
+    // for(int i = 0; i < this->Cgi_Index.size(); i++)
+    //              std::cout << "|" << this->Cgi_Index[i] << "|" ;
+    // std::cout << std::endl;
     return this->Cgi_Index;
 }
 

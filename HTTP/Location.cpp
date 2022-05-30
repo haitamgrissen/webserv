@@ -50,7 +50,7 @@ std::vector <std::string>               Location::get_allow_methods(void)
 
 std::vector <std::string>               Location::get_index(void)
 {
-    std::cout << this->location_Index.size() << std::endl;
+    //std::cout << this->location_Index.size() << std::endl;
     return this->location_Index;
 }
 

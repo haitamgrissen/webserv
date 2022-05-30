@@ -44,27 +44,27 @@ std::string                             Conf::get_error(int c)
 
 std::vector <std::string>               Conf::get_allow_methods(void)
 {
-    for(int i = 0; i < this->Allow_methods.size(); i++)
-                 std::cout << "|" << Allow_methods[i] << "|" ;
-    std::cout << std::endl;
+    // for(int i = 0; i < this->Allow_methods.size(); i++)
+    //              std::cout << "|" << Allow_methods[i] << "|" ;
+    // std::cout << std::endl;
     return this->Allow_methods;
 }
 
 std::vector <std::string>               Conf::get_index(void)
 {
-    for(int i = 0; i < this->Index.size(); i++)
-                 std::cout << "|" << this->Index[i] << "|" ;
-    std::cout << std::endl;
+    // for(int i = 0; i < this->Index.size(); i++)
+    //              std::cout << "|" << this->Index[i] << "|" ;
+    // std::cout << std::endl;
     return this->Index;
 }
 
 std::map<int, std::string>              Conf::get_error_page(void)
 {
-    for (std::map<int, std::string>::iterator it = this->error_page.begin(); it != this->error_page.end(); it++)
-    {
-		std::cout << "\t\t\t\t" << (*it).first  << "\t" << (*it).second  <<  std::endl;
-	}
-    std::cout << std::endl;
+    // for (std::map<int, std::string>::iterator it = this->error_page.begin(); it != this->error_page.end(); it++)
+    // {
+	// 	std::cout << "\t\t\t\t" << (*it).first  << "\t" << (*it).second  <<  std::endl;
+	// }
+    // std::cout << std::endl;
     return this->error_page;
 }
 

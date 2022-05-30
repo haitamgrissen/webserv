@@ -125,7 +125,7 @@ void            HttpRequest::handle_regular_body(void)
     std::string     file_type;
 
     file_type = this->get_file_type();
-    std::cout << this->get_my_upload_path() << std::endl;
+    //std::cout << this->get_my_upload_path() << std::endl;
     result_file.open(this->get_my_upload_path() + "res" + file_type, std::ios::out);
     while(getline(file_2, str))
         result_file << str + "\n";
@@ -248,7 +248,6 @@ void            HttpRequest::store_header_vars(std::string req_handle, std::ostr
     this->tranfer_encoding = this->get_value("Transfer-Encoding");
     if (this->Http_Method == "POST" )
     {
-        //std::cout << "Hello3" << std::endl;
         if (this->isNumber(this->get_value("Content-Length")) && this->get_value("Content-Length") != "")    
             this->content_length = std::stoi(this->get_value("Content-Length"));
         else
@@ -304,19 +303,19 @@ int           HttpRequest::store_body_content(size_t &body_size, std::ostringstr
 
     if (this->tranfer_encoding != "" && data.find("0\r\n\r\n") != std::string::npos)
     {
-        std::cout << "Condition 1 " << std::endl;
+        //std::cout << "Condition 1 " << std::endl;
         body_stream << data << std::endl;
         return 0;
     }
     else if (this->content_length == body_size - 1)
     {
-        std::cout << "Condition 2 " << std::endl;
+        //std::cout << "Condition 2 " << std::endl;
         body_stream << data << std::endl; 
         return 0;
     }
-    else if (body_size - 1 > this->content_length)
+    else if (body_size - 1 > this->content_length && this->tranfer_encoding == "")
     {
-        std::cout << "Condition 3 " << std::endl;
+        //std::cout << "Condition 3 " << std::endl;
         this->content_length = 0;
         return 0;
     }
@@ -351,8 +350,10 @@ int            HttpRequest::handle_http_request(int new_socket, std::fstream & b
     char                buffer[5000] = {0};
 
     valread = read_data_from_fd(valread, data, new_socket);
+    //std::cout << "hana hna " << std::endl;
     if (valread <= 0)
     {
+       // std::cout << "KKKK" << std::endl;
         file.close();
         return -1; // return -1 if read failed
     }
@@ -362,17 +363,26 @@ int            HttpRequest::handle_http_request(int new_socket, std::fstream & b
         file << data;
         file.close();
         this->get_request(data, body_size, body_stream);
+        //std::cout << this->Http_Method << std::endl;
         //std::cout << "iv reached here buddy 2" << std::endl;
         if (this->Http_Method != "POST")
             return 0;
         else if (body_stream.str() == "" && this->content_length != 0)
+        {
+            //std::cout << "??" << std::endl;
             return 0;
+        }
+            
         else if (valread < 5000)
+        {
+            //std::cout << "?????" << std::endl;
             return 0;
+        }
+            
     }
     else if (this->Http_Method == "POST")
     {
-       // std::cout << "iv reached here buddy 3" << std::endl;
+        //std::cout << "iv reached here buddy 3" << std::endl;
         if (!store_body_content(body_size, body_stream, data, valread))
             return 0;
     }
