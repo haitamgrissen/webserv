@@ -7,13 +7,15 @@ Server {
     
     server_name       example.com
 
+    index index.html
     error_page      404 ./HTTP/error_pages/404.html
     error_page      403 ./HTTP/error_pages/403.html
     error_page      400 ./HTTP/error_pages/400.html
     error_page      405 ./HTTP/error_pages/405.html
     error_page      413 ./HTTP/error_pages/413.html
     error_page      500 ./HTTP/error_pages/500.html
-    autoindex off
+    error_page      504 ./HTTP/error_pages/504.html
+    autoindex on
 
     
     redirection    youtube   www.youtube.com
@@ -29,13 +31,13 @@ Server {
     
     location {
         root ./HTTP
-        path /PATH03/fibo  
+        path /PATH03/res.png  
         autoindex off
-        allow_methods  DELETE GET
+        allow_methods  DELETE GET POST
     }
     location {
         root ./HTTP
-        path /PATH03/body.png
+        path /
         autoindex on
         allow_methods DELETE POST GET
     }
@@ -44,7 +46,7 @@ Server {
         root ./HTTP
         path /PATH03/index.html
         autoindex on
-        allow_methods DELETE POST
+        allow_methods DELETE POST GET
     }
 
     cgi .py
@@ -56,7 +58,7 @@ Server {
 }
 
 Server {
-    listen             127.0.0.1 8086
+    listen             127.0.0.1 8084
     root             ./HTTP
     allow_methods      GET POST 
 
@@ -69,12 +71,13 @@ Server {
     error_page      405 ./HTTP/error_pages/405.html
     error_page      400 ./HTTP/error_pages/400.html
     error_page      500 ./HTTP/error_pages/500.html
+    error_page      504 ./HTTP/error_pages/504.html
     error_page      413 ./HTTP/error_pages/413.html
     autoindex off
 
     redirection    /doooooxsxvasvf /test/
     
-    
+    server_name       nizar.com
 
 
     location {
@@ -89,6 +92,14 @@ Server {
         path /PATH03/
         autoindex on
         allow_methods GET  POST
+    } 
+
+
+    location {
+        root ./HTTP
+        path /PATH03/todelete
+        autoindex on
+        allow_methods GET DELETE
     } 
     cgi .php
     {

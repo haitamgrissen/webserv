@@ -160,7 +160,7 @@ int		Server::accept()
 
 
 
-int		Server::send(int sock, _body * bd)
+int		Server::send(int sock, _body * bd, std::string config)
 {
 	std::string	my_method;
 	std::string	my_chunk;
@@ -169,56 +169,56 @@ int		Server::send(int sock, _body * bd)
 	std::string	request_target;
 	std::string	red_target;
 
+	bd->_ok.arrange_config(config);
 	bd->init_values(my_method, my_chunk, _index, my_len, request_target);
 	
 	if (bd->_startedwrite == false)
 		bd->_startedwrite = true;
-	red_target = request_target.substr(request_target.find_last_of("/") + 1, request_target.size());
-	red_target = bd->_ok.get_server(_index).get_redirection_value(red_target);
-	error_msg = bd->_ok.pars_check(bd->_http.Get_Request_Target(), bd->_http.Get_Http_Method());
-	if (error_msg != "")
+
+	int cgi = CGI_D_ayoub(bd, bd->_http.Get_Request_Target(), bd->_http.Get_Http_Method());
+	//int cgi = 0;
+	//std::cout << "???????" << std::endl;
+	if (cgi == 0)
 	{
-		bd->_ok.error_handling(error_msg);
-	}
-	else if (red_target != "")
-	{
-		bd->_ok.set_request_target(red_target);
-		bd->_ok.handle_redirect_response(bd->_http.get_value("Connection"));
-	}
-	else if (my_method == "POST" && ((my_len < 0) || (bd->_body_stream.str() == "" && my_len != 0)))
-		bd->_ok.error_handling("400 Bad Request");
-	else
-	{
-		if (!bd->handle_body(my_method, my_chunk, error_msg, my_len))
+		red_target = request_target.substr(request_target.find_last_of("/") + 1, request_target.size());
+		red_target = bd->_ok.get_server(_index).get_redirection_value(red_target);
+		error_msg = bd->_ok.pars_check(bd->_http.Get_Request_Target(), bd->_http.Get_Http_Method());
+		if (error_msg != "")
+		{
+			bd->_ok.error_handling(error_msg);
+		}
+		else if (red_target != "")
+		{
+			bd->_ok.set_request_target(red_target);
+			bd->_ok.handle_redirect_response(bd->_http.get_value("Connection"));
+		}
+		else if (my_method == "POST" && ((my_len < 0) || (bd->_body_stream.str() == "" && my_len != 0)))
 			bd->_ok.error_handling("400 Bad Request");
 		else
 		{
-			if (bd->_ok.get_max_body_size() < 0)
-				bd->_ok.error_handling("500 Webservice currently unavailable");
-			else if (bd->_http.get_total_size() > bd->_ok.get_max_body_size() && bd->_ok.get_max_body_size() != 0)
-				bd->_ok.error_handling("413 Payload Too Large");
+			if (!bd->handle_body(my_method, my_chunk, error_msg, my_len))
+				bd->_ok.error_handling("400 Bad Request");
 			else
 			{
-				if (error_msg != "")
-					bd->_ok.error_handling(error_msg);
+				if (bd->_ok.get_max_body_size() < 0)
+					bd->_ok.error_handling("500 Webservice currently unavailable");
+				else if (bd->_http.get_total_size() > bd->_ok.get_max_body_size() && bd->_ok.get_max_body_size() != 0)
+					bd->_ok.error_handling("413 Payload Too Large");
 				else
-					bd->handle_response(my_method);
-				
-			}			
+				{
+					if (error_msg != "")
+						bd->_ok.error_handling(error_msg);
+					else
+						bd->handle_response(my_method);
+					
+				}			
+			}
 		}
 	}
-
-
-	////////// CGI 
-
-	int cgi = CGI_D_ayoub(bd, request_target, my_method);
-
-
-	///TODO:this is return errors from CGI_D_ayoub(bd, request_target, my_method);
-	if (cgi == -1)///executable scripte doesn exist 
+	else if (cgi == -1)///executable scripte doesn exist 
 	{	
-		std::cout << "404 Not Found" << std::endl;
-		//bd->_ok.error_handling("404 Not Found");
+		//std::cout << "404 Not Found" << std::endl;
+		bd->_ok.error_handling("404 Not Found");
 		cgi = 0;
 		//bd->_ok.error_handling("400 Bad Request");
 		///error  not found exec file 404
@@ -226,28 +226,33 @@ int		Server::send(int sock, _body * bd)
 	}
 	else if (cgi == -2)
 	{	
-		//bd->_ok.error_handling("500 Webservice currently unavailable");
+		bd->_ok.error_handling("500 Webservice currently unavailable");
 		///internal SERVER ERROR 500
 		//return 0;
 		cgi = 0;
 	}
 	else if (cgi == -3)//time out 
 	{	
-		///bd->_ok.error_handling("500 Webservice currently unavailable");
+		bd->_ok.error_handling("504 Gateway Timeout");
 		///internal SERVER ERROR 500
 		//return 0;
 		cgi = 0;
 	}
 
-	//////////
+
+
+
 
 
 
 
 	///Send the handeled Respones
 	int flag;
-	if (cgi == 0)/////yalahuiiiiii
+	if (cgi == 0)
+	{
 		flag = write(sock , bd->_ok.get_hello() + bd->_writecount , bd->_ok.get_total_size() - bd->_writecount);
+	}
+		
 	else
 		flag = write(sock, bd->response.c_str() + bd->_writecount , bd->response.size() - bd->_writecount);
 
@@ -263,8 +268,10 @@ int		Server::send(int sock, _body * bd)
 		// _requestmap.erase(it);
 		return 0;
 	}
+	else if (flag == -1 || flag == 0) 
+		return (0);
 	else
-		return (1);
+		return 1;
 	
 
 }
@@ -411,15 +418,19 @@ std::ostream &			operator<<( std::ostream & o, Server const & i )
 
 int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my_method)
 {
-
+	int			pos;
 	std::string extention;
-	extention = request_target.substr(request_target.find("."));
-	
+
+	extention = "";
+	pos = request_target.find(".");
+	if (pos != std::string::npos)
+		extention = request_target.substr(pos);
+	else
+		return 0;
 
 	int cgi = 0;
 	int query;
 	query = extention.find('?');
-
 
 
 	std::string querry;
@@ -427,23 +438,35 @@ int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my
 	std::string executable_script = request_target.substr(1);
 
 
-
+	int f_fd;
 	if (query != -1)
 	{
 		querry = extention.substr(query + 1);
 		extention = extention.substr(0,query);
 
-		executable_script = request_target.substr(1,request_target.find('?') - 1);
-
-
+		pos = request_target.find('?');
+		if (pos != -1)
+			executable_script = request_target.substr(1,pos - 1);
+		else
+			executable_script = request_target;
 		//check if the exec-file exist
-		int f_fd;
-		if ((f_fd = open(executable_script.c_str(), O_RDWR)) == -1)
+		
+		if ((f_fd = open(executable_script.c_str(), O_RDWR)) < 0 && extention != "")
+			return 0;
+		else if ((f_fd = open(executable_script.c_str(), O_RDWR)) < 0)
 			return -1;
-		close (f_fd);//close the file descripto of the check
+
+			
+		//close (f_fd);//close the file descripto of the check
 	}
-
-
+	else if ((f_fd = open((request_target.substr(1,request_target.size())).c_str(), O_RDWR)) < 0 && extention != "")
+	{
+		return 0;
+	}
+	else if ((f_fd = open((request_target.substr(1,request_target.size())).c_str(), O_RDWR)) < 0)	
+		return -1;
+		
+	close (f_fd);//close the file descripto of the check
 	//CGI IMPLEMENTATION
 	if (extention == ".py")
 	{
@@ -499,7 +522,11 @@ int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my
 			env_arr[env.size()] = NULL;
 
 			if (execve(cgi_location.c_str(),args,env_arr) == -1)
+			{
 				perror("Could not execute");
+
+			}
+			
 		}
 		else //parent
 		{

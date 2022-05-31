@@ -13,6 +13,7 @@
 #include <sstream>
 #include <iterator>
 
+
 void                                    Location::set_Listen(std::string c)
 {
     this->location_Listen = c;

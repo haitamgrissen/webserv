@@ -139,7 +139,7 @@ void					ServerGroup::build()
 		throw BuildException();
 }
 
-void					ServerGroup::start()
+void					ServerGroup::start(std::string config)
 {
 	struct timeval	timetostop;
 	timetostop.tv_sec  = 1;
@@ -219,7 +219,7 @@ void					ServerGroup::start()
 							servr = (it)->second->srvr;
 
 							bd = (it)->second;
-							flag = servr->send(i, bd);
+							flag = servr->send(i, bd, config);
 
 							if (flag == 0)
 							{

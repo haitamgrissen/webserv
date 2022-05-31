@@ -12,7 +12,6 @@
 #include <string>
 #include <sstream>
 #include <iterator>
-
 void                                    Cgi::set_Listen(std::string c)
 {
     this->Cgi_Listen = c;

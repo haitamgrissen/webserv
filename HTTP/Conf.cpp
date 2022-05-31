@@ -14,6 +14,7 @@
 #include <string>
 #include <sstream>
 #include <iterator>
+
 Conf::Conf(void)
 {
     this->location_count = 0;

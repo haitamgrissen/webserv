@@ -13,6 +13,7 @@
 #include "Conf.hpp"
 #include "Servers.hpp"
 
+
 class Response
 {
     private:
@@ -36,6 +37,7 @@ class Response
         std::string                     my_upload_path;
         std::string                     redirect_path;
         std::string                     regular_path;
+        std::string                     config;
 
 
         int                             _index;
@@ -92,6 +94,9 @@ class Response
         int                         search_index_in_location();
         int                         search_index_in_server();
         void                        dir_treatment();
+        void                        arrange_config(std::string c);
+        void				        set_config(std::string c);
+        std::string			        get_config(void);
         ~Response(void);
 
 

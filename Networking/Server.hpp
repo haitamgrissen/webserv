@@ -7,13 +7,17 @@
 
 class Server;
 
+
+
+
+
 class	_body
 		{
 			public :
 				_body(int fd)
 				{
 					_client_fd = fd;
-					_body_file.open("body" + std::to_string(_client_fd) +".txt", std::ios::out);
+					_body_file.open("body.txt", std::ios::out);
 					_body_size = 0;
 
 					_readcount = 0;
@@ -107,6 +111,8 @@ class	_body
 						this->_ok.handle_delete_response(this->_http.get_value("Connection"));
 					else if (my_method == "POST")
 						this->_ok.handle_post_response(this->_http.get_value("Connection"));
+					else
+						this->_ok.error_handling("405 Method Not Allowed");
 				}
 
 
@@ -126,7 +132,7 @@ class Server
 
 		//NETWORK I/O
 		int		accept();
-		int		send(int sock, _body * bod);
+		int		send(int sock, _body * bod,	std::string config);
 		int		send(int sock);
 		int		recv(int sock);
 
@@ -151,6 +157,14 @@ class Server
 		//CONSTRUCTORS AND OVERLOADS
 		Server();
 		Server(unsigned int host, int port);
+		void				set_config(std::string c)
+		{
+			this->config = c;
+		}
+		std::string			get_config(void)
+		{
+			return this->config;
+		}
 		Server( Server const & src );
 		~Server();
 		Server &		operator=( Server const & rhs );
@@ -165,6 +179,7 @@ class Server
 		unsigned int 				_host;
 		std::string					_name;
 		std::string 				_hoststring;
+		std::string					config;
 
 
 

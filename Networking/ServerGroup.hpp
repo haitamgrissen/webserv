@@ -8,6 +8,7 @@
 #include "../HTTP/Response.hpp"
 #include "../HTTP/Servers.hpp"
 
+
 	class listener{
 		public :
 		listener(){};
@@ -40,7 +41,7 @@ class ServerGroup
 
 
 		void	build();
-		void	start();
+		void	start(std::string config);
 		void	stop();
 
 		Server			*getHostServer(std::string servername, std::string host, int port);
@@ -125,7 +126,7 @@ class ServerGroup
 	};
 
 
-	DebugWS 						Debugging;
+	//DebugWS 						Debugging;
 };
 
 std::ostream &			operator<<( std::ostream & o, ServerGroup const & i );
