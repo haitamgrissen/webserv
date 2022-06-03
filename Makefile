@@ -4,7 +4,7 @@ SRC = main.cpp Networking/Server.cpp Networking/ServerGroup.cpp HTTP/Cgi.cpp HTT
 
 CC = clang++  -std=c++98
 
-FLAGS = -Wall -Wextra -Werror -fsanitize=address -g3
+FLAGS = -Wall -Wextra -Werror
 
 CONF= conf
 

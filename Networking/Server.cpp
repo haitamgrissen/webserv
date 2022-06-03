@@ -422,11 +422,13 @@ Server::~Server()
 
 int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my_method)
 {
+
 	size_t			pos;
 	std::string extention;
 
 	extention = "";
-	pos = request_target.find(".py");
+	
+	pos = request_target.find(".php");
 	if (pos != std::string::npos)
 		extention = request_target.substr(pos);
 	else
@@ -466,19 +468,28 @@ int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my
 	}
 	else if ((f_fd = open((request_target.substr(1,request_target.size())).c_str(), O_RDWR)) < 0 && extention != "")
 	{
+		std::cout << "1 " << f_fd <<" " << request_target.substr(1,request_target.size()).c_str() << " " << extention << std::endl;
 		return 0;
 	}
-	else if ((f_fd = open((request_target.substr(1,request_target.size())).c_str(), O_RDWR)) < 0)	
+	else if ((f_fd = open((request_target.substr(1,request_target.size())).c_str(), O_RDWR)) < 0)
+	{
+		std::cout << "2 " << f_fd <<" " << request_target.substr(1,request_target.size()).c_str() << " "<< std::endl;
 		return -1;
+	}	
 		
 	close (f_fd);//close the file descripto of the check
 	//CGI IMPLEMENTATION
-	if (extention == ".py")
+	if (extention == ".php")
 	{
 		cgi = 1;
 		int fd = open("/tmp/test", O_RDWR | O_CREAT, 0777);
 		int body = open("/tmp/body", O_RDWR | O_CREAT, 0777);
-	
+		if (my_method == "POST")
+		{
+			std::string bodyy = bd->_body_stream.str();
+			write(body,bodyy.c_str(),bodyy.size());
+			close(body);
+		}
 		int fork_id = fork();
 
 		if (fork_id == -1)
@@ -494,14 +505,17 @@ int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my
 		}
 		else if (fork_id == 0)
 		{
+			
+			dup2(fd,1);
+			close(fd);
 			if (my_method == "POST")
 			{
-				std::string bodyy = bd->_body_stream.str();
-				write(body,bodyy.c_str(),bodyy.size());
-				dup2(body,0);
+				body = open("/tmp/body", O_RDWR , 0777);
+				dup2(body, 0);
+				close(body);
 			}
-			dup2(fd,1);
-
+			else
+				dup2(-1, 0);
 			char *args[3];
 			args[0] = (char *)cgi_location.c_str();
 			args[1] = (char *)executable_script.c_str();
@@ -519,7 +533,8 @@ int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my
 			env.push_back(std::string("CONTENT_TYPE=") + bd->_http.get_value("Content-Type"));
 			env.push_back(std::string("CONTENT_LENGTH=") + bd->_http.get_value("Content-Length"));
 			env.push_back(std::string("HTTP_USER_AGENT=") + bd->_http.get_value("User-Agent"));
-
+			env.push_back(std::string("REDIRECT_STATUS=true"));
+			env.push_back(std::string("SCRIPT_FILENAME=") + executable_script);
 			char **env_arr = new char*[env.size() + 1];
 
 			for (size_t i = 0; i < env.size(); ++i)

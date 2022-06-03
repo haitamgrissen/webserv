@@ -311,7 +311,7 @@ Server	*ServerGroup::getHostServer(std::string servername, std::string host , in
 		}
 		it++;
 	}
-	return NULL;
+	return _default_server;
 }
 
 int		ServerGroup::recvCon(int fd)
