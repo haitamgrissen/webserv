@@ -1,0 +1,102 @@
+Server {
+    listen             127.0.0.1 8080
+    root               ./www
+    allow_methods      GET POST 
+
+    upload_path        ./www/PATH03/
+    
+    server_name       a.com
+
+    index index.html
+    error_page      404 ./www/error_pages/404.html
+    error_page      403 ./www/error_pages/403.html
+    error_page      400 ./www/error_pages/400.html
+    error_page      405 ./www/error_pages/405.html
+    error_page      413 ./www/error_pages/413.html
+    error_page      500 ./www/error_pages/500.html
+    error_page      504 ./www/error_pages/504.html
+    autoindex on
+
+    
+    redirection    youtube   www.youtube.com
+    redirection    /ok 3yqti
+
+    location {
+        root ./www
+        path /PATH03/html/
+        autoindex on
+        allow_methods  POST GET
+    }
+    
+    location {
+        root ./www
+        path /PATH03/
+        autoindex on
+        allow_methods  DELETE POST GET
+    }
+    
+    location {
+        root ./
+        path /
+        autoindex on
+        allow_methods DELETE POST GET
+    }
+
+    cgi .py
+    {
+        allow_methods      POST
+        cgi_path         /usr/local/bin/python3
+    }
+}
+
+Server {
+    listen             127.0.0.1 8080
+    server_name       nizar.com 
+
+
+    root             ./www
+    allow_methods      GET POST 
+    
+    upload_path        ./www/PATH03/
+    index index.html index.php 
+    autoindex on
+
+    error_page      404 ./www/error_pages/404.html
+    error_page      403 ./www/error_pages/403.html
+    error_page      405 ./www/error_pages/405.html
+    error_page      400 ./www/error_pages/400.html
+    error_page      500 ./www/error_pages/500.html
+    error_page      504 ./www/error_pages/504.html
+    error_page      413 ./www/error_pages/413.html
+
+    redirection    youtube   www.youtube.com
+
+    location {
+        root ./www
+        path /PATH03/
+        autoindex on
+        allow_methods  GET POST
+    }
+    
+    location {
+        root ./www
+        path /PATH03/test/
+        autoindex on
+        allow_methods GET  POST
+    } 
+
+
+    location {
+        root ./www
+        path /
+        autoindex on
+        allow_methods GET DELETE
+    } 
+    cgi .py
+    {
+        allow_methods      POST
+        cgi_path         /usr/local/bin/python3
+    }
+
+    client_max_body_size 4343
+}

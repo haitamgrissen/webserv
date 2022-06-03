@@ -66,6 +66,7 @@ class	_body
 					my_chunk = this->_http.get_value("Transfer-Encoding");
 					my_len = this->_http.get_content_len();
 					request_target = this->_http.Get_Request_Target();
+					this->_ok.set_my_upload_path(this->_ok.get_server(index).get_upload_path());
 					// std::cout << request_target << "HANA ASAT WTF" << std::endl;
 					this->_ok.setIndex(index);
 					// if (this->_ok.get_server(index).get_redirection_value(request_target) != "")
@@ -81,8 +82,8 @@ class	_body
 					this->_ok.set_request_method(my_method);
 					this->_ok.set_request_target(this->_http.Get_Request_Target());
 					this->_ok.set_mybuffer(this->_http.Get_Request_Target());
-					this->_ok.check_file();
-					error_msg = this->_ok.parsing_check();
+					error_msg = this->_ok.check_my_location(this->_http.Get_Request_Target(), this->_http.Get_Http_Method());
+					//error_msg = this->_ok.parsing_check();
 				}
 
 				int				handle_body(std::string my_method, std::string my_chunk, std::string error_msg, int my_len)
@@ -97,6 +98,7 @@ class	_body
 							this->_body_size = this->_http.handle_chunked_body();
 						else
 							this->_http.handle_regular_body();
+						my_len = 0;
 						// if (this->_body_size - 1 > my_len && my_len >= 0)
 						// 	return 0;
 					}

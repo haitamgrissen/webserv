@@ -25,7 +25,7 @@ class Location
         Location(void);
         std::string                             get_Listen(void);
         std::string                             get_root(void);
-        std::vector <std::string>               get_allow_methods(void);
+        std::vector <std::string>             &  get_allow_methods(void);
         std::vector <std::string>               get_index(void);
         std::map<int, std::string>              get_error_page(void);
         std::map<std::string, std::string>      get_redirection(void);

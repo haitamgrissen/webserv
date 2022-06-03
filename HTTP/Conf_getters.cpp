@@ -71,7 +71,7 @@ std::map<int, std::string>              Conf::get_error_page(void)
 
 bool Conf::isNumber(std::string & s)
 {
-    for (int i=0; i < s.size();i++)
+    for (size_t i=0; i < s.size();i++)
     {
         char const c = s.c_str()[i];
         if (std::isdigit(c) == 0) 

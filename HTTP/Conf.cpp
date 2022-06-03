@@ -26,7 +26,7 @@ Conf::Conf(void)
 void                                    Conf::show_locations()
 {
     std::vector<Location> ok = this->get_locations();
-    for(int i = 0; i < ok.size(); i++)
+    for(size_t i = 0; i < ok.size(); i++)
     {
         std::cout << "\t\t\tLocation BLOCK\t\t\t" << std::endl;
         std::cout << "Root : \t\t\t\t" << ok[i].get_root() << std::endl;

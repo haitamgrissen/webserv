@@ -40,7 +40,7 @@ std::string                             Location::get_root(void)
     return this->location_Root;
 }
 
-std::vector <std::string>               Location::get_allow_methods(void)
+std::vector <std::string>      &         Location::get_allow_methods(void)
 {
     // for(int i = 0; i < this->location_Allow_methods.size(); i++)
     //     std::cout << "|" << location_Allow_methods[i] << "|" ;

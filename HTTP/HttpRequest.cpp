@@ -94,7 +94,7 @@ std::string string_toupper(std::string str)
     std::string result;
     int c;
 
-    for(int i =0; i < str.size(); i++)
+    for(size_t i =0; i < str.size(); i++)
     {
         c = str[i];
         if (isalpha(str[i]))
@@ -127,6 +127,7 @@ void            HttpRequest::handle_regular_body(void)
     file_type = this->get_file_type();
     //std::cout << this->get_my_upload_path() << std::endl;
     result_file.open(this->get_my_upload_path() + "res" + file_type, std::ios::out);
+    std::cout << this->get_my_upload_path() + "res" + file_type << std::endl;
     while(getline(file_2, str))
         result_file << str + "\n";
     result_file.close();
@@ -227,7 +228,7 @@ int             HttpRequest::get_my_port(void)
 
 bool            HttpRequest::isNumber(std::string  s)
 {
-    for (int i=0; i < s.size();i++)
+    for (size_t i=0; i < s.size();i++)
     {
         char const c = s.c_str()[i];
         if (std::isdigit(c) == 0) 
@@ -275,6 +276,7 @@ void            HttpRequest::get_request(std::string data, size_t & body_size, s
 
     req_handle = "";
     store_it = "";
+    data = "";
     while(getline(file_2, str))
     {
         if (str == "\r")
@@ -332,7 +334,7 @@ int           HttpRequest::read_data_from_fd(int & valread, std::string & data, 
     if (valread <= 0)
         return 0;
     this->total_size += valread;
-    for (size_t i = 0; i < valread; i++)
+    for (int i = 0; i < valread; i++)
         data+=buffer[i];
     return valread;
 }
@@ -342,12 +344,11 @@ int            HttpRequest::get_content_len()
     return this->content_length;
 }
 
-int            HttpRequest::handle_http_request(int new_socket, std::fstream & body_file, size_t &body_size, std::ostringstream & body_stream)
+int            HttpRequest::handle_http_request(int new_socket, size_t &body_size, std::ostringstream & body_stream)
 {
     std::string         data;
     std::fstream        file;
     int                 valread;
-    char                buffer[5000] = {0};
 
     valread = read_data_from_fd(valread, data, new_socket);
     //std::cout << "hana hna " << std::endl;

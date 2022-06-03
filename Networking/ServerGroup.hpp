@@ -62,10 +62,11 @@ class ServerGroup
 
 
 
+	Server											*_default_server;
 
-
-	std::map<int, Server *>			_client_fds;
-	std::map<int, Server *>			_servers_map;
+	std::map<int, Server *>							_client_fds;
+	std::map<int, int>								_client_port;
+	std::map<int, Server *>							_servers_map;
 
 	std::map<std::string , VirtualServer *>			_servername_map;
 	// std::map<std::string ,listener *>			_servername_map;
@@ -82,7 +83,7 @@ class ServerGroup
 	fd_set							_masterfds;
 	fd_set							_masterwritefds;
 	unsigned int					_fd_size;
-	unsigned int					_fd_cap;
+	int								_fd_cap;
 
 	fd_set 							_readset;
     fd_set 							_writeset;
