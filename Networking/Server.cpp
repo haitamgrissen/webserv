@@ -434,7 +434,6 @@ int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my
 	pos = request_target.find(".");
 	if (pos != std::string::npos)
 	{
-		std::cout << "hello\n";
 		size_t i = 0;
 		if (request_target.substr(pos, 3) == ".py")
 		{
@@ -566,7 +565,10 @@ int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my
 			args[2] = NULL;
 
 			std::vector<std::string> env;
-
+			if (bd->_http.get_value("Cookie") != "")
+			{
+				env.push_back(std::string("HTTP_COOKIE=") + bd->_http.get_value("Cookie"));
+			}
 			env.push_back(std::string("GATEWAY_INTERFACE=CGI/1.1"));
 			env.push_back(std::string("SERVER_SOFTWARE=webserv"));
 			env.push_back(std::string("SERVER_PROTOCOL=HTTP/1.1"));
@@ -629,9 +631,12 @@ int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my
 			{
 				ret.append(cgi_buff, nbytes);
 			}
-			
+			std::cout << bd->response << std::endl;
 			bd->response = bd->_ok.parse_response_cgi(ret) ;
 			bd->_ok.set_hello(bd->response);
+			//int i = bd->response.size();
+			
+
 			// std::cout << response << std::endl;
 			remove("/tmp/test");
 			remove("/tmp/body");

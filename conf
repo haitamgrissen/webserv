@@ -55,7 +55,7 @@ Server {
 
 
     root             ./www
-    allow_methods      GET POST 
+    allow_methods      GET POST
     
     upload_path        ./www/PATH03/
     index index.html index.php 
@@ -69,13 +69,14 @@ Server {
     error_page      504 ./www/error_pages/504.html
     error_page      413 ./www/error_pages/413.html
 
-    redirection    youtube   www.youtube.com
+    redirection    youtube   https://www.youtube.com
+    redirection    old-PATH03 /static
 
     location {
         root ./www
         path /PATH03/
         autoindex on
-        allow_methods   POST
+        allow_methods   POST GET DELETE
     }
     
     location {
@@ -87,14 +88,14 @@ Server {
 
     location {
         root ./www
-        path /
+        path /hg
         autoindex on
         allow_methods DELETE POST GET
     }
 
     location {
         root ./www
-        path /er
+        path /
         autoindex on
         allow_methods GET DELETE
     } 
@@ -114,5 +115,5 @@ Server {
         cgi_path         /usr/local/bin/python3
     }
 
-    client_max_body_size 109267977 
+    client_max_body_size 200000
 }

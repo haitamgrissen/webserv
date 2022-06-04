@@ -459,7 +459,7 @@ void                        Response::handle_redirect_response(std::string c)
     this->my_Res << "HTTP/1.1 301 Moved Permanently\r\n";
     this->my_Res << "Date: "<< date << "\r\n";
     this->my_Res << "Server: Webserv/4.4.0\r\n";
-    this->my_Res << "Location: " << "https://" + this->get_request_target() + "/"  << "\r\n"; 
+    this->my_Res << "Location: " << this->get_request_target() + "/"  << "\r\n"; 
     this->my_Res << "Connection: close" << "\r\n\r\n";
     this->total_size = this->my_Res.str().size();
     //std::cout << this->my_Res.str() << std::endl;
@@ -750,11 +750,12 @@ std::string Response::parse_response_cgi(std::string ret)
     std::string body;
     int startindicator;
     int pos;
+
     pos = ret.find("\n\r\n");
     fake_header = ret.substr(0,pos + 1);
     body = ret.substr(pos + 1, EOF);
-   // std::cout  << "|||||" << body << "||||" << std::endl;
-   
+   // std::cout  << "|||||" << body << "||||" << std::endl;)
+    
     if ( (startindicator = fake_header.find("HTTP/1.1")) == -1 )
         real_header += "HTTP/1.1 200 OK\n";
     else
@@ -764,8 +765,20 @@ std::string Response::parse_response_cgi(std::string ret)
         real_header += "Content-type:text/html\n";
     else
         real_header += fake_header.substr(startindicator,fake_header.find("\n",startindicator) + 1);
-
     real_header += "Server: petitwebserv\n";
-    real_header += "Content-Length: " + std::to_string(body.size()) + "\n\r\n";
+    real_header += "Content-Length: " + std::to_string(body.size()) + "\r\n";
+    int fibo = 0;
+    size_t nizar;
+    fibo = fake_header.find("Set-Cookie: ");
+    std::string s;
+    while (fibo != -1)
+    {
+        nizar = fake_header.find_first_of("\n", fibo);
+        s += fake_header.substr(fibo, nizar - fibo) + "\n";
+        fake_header = fake_header.substr(nizar + 2);
+        fibo = fake_header.find("Set-Cookie: ");        
+    }
+       real_header += s + "\n\r\n";
+      // std::cout << "[" << real_header + body << "]" << std::endl;
         return real_header + body;
 }
