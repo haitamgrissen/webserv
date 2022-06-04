@@ -99,13 +99,14 @@ void               Servers::parse_server(std::string name)
                     }
                     if (i == Locations.size())
                     {
-                        Location *ok = new Location;
+                        delete ok;
+                        ok = new Location;
                         ok->set_location_path("/");
                         ok->set_allow_methods(my_conf->get_allow_methods());
                         ok->set_root(my_conf->get_root());
                         ok->set_autoindex(my_conf->get_autoindex());
                         my_conf->add_locations(*ok);
-                        delete ok;
+                        //delete ok;
                         //
                     }
                     this->server.push_back(*my_conf);
@@ -130,6 +131,7 @@ void               Servers::parse_server(std::string name)
     }
     delete ok;
     delete my_conf;
+    delete ok_cgi;
     file.close();
 }
 
