@@ -140,7 +140,7 @@ void					ServerGroup::build()
 			//std::cout << "saame host/port servers coutn : " << tmpvrtsrvr->_virtual_server_list.size() << std::endl;
 		}
 
-		std::cout << tmpvrtsrvr->_virtual_server_list.size() << std::endl;
+		//std::cout << tmpvrtsrvr->_virtual_server_list.size() << std::endl;
 ///////////
 
 
@@ -343,15 +343,15 @@ int		ServerGroup::recvCon(int fd)
 		// else
 			tmp_port = bd->_http.get_my_port();
 
-		std::cout << "server name : " << tmp_servername << std::endl;
-		std::cout << "host : " << tmp_host << std::endl;
-		std::cout << "port  : " << tmp_port << std::endl;
+		// std::cout << "server name : " << tmp_servername << std::endl;
+		// std::cout << "host : " << tmp_host << std::endl;
+		// std::cout << "port  : " << tmp_port << std::endl;
 
 
 		tmp_srvr = getHostServer(tmp_servername, tmp_host ,tmp_port);
 		if (tmp_srvr != NULL)
 		{
-			std::cout << "[server pointer : ]"<< tmp_srvr << std::endl;
+			// std::cout << "[server pointer : ]"<< tmp_srvr << std::endl;
 			bd->srvr = tmp_srvr;
 			_requests_map.insert(std::make_pair(fd, bd));
 		}
@@ -365,9 +365,9 @@ int		ServerGroup::recvCon(int fd)
 	}
 	else
 	{
-		std::cout << "[daz lhna]" << std::endl;
+		// std::cout << "[daz lhna]" << std::endl;
 		bd = it->second;
-		std::cout << "server name : " << bd->srvr << std::endl; 
+		// std::cout << "server name : " << bd->srvr << std::endl; 
 		flag = bd->_http.handle_http_request(fd, bd->_body_size, bd->_body_stream);
 	}
 

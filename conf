@@ -75,29 +75,38 @@ Server {
         root ./www
         path /PATH03/
         autoindex on
-        allow_methods  GET POST
+        allow_methods   POST
     }
     
     location {
         root ./www
-        path /PATH03/test/
+        path /hellothere/
         autoindex on
         allow_methods GET  POST
     } 
 
-
+ 
     location {
         root ./www
-        path /
+        path /er
         autoindex on
         allow_methods GET DELETE
     } 
 
+
+
     cgi .php
     {
-        allow_methods      POST GET
-        cgi_path         php-cgi
+        allow_methods       POST GET
+        cgi_path            cgi/php-cgi
     }
 
-    client_max_body_size 4343
+
+    cgi .py
+    {
+        allow_methods      POST
+        cgi_path         /usr/local/bin/python3
+    }
+
+    client_max_body_size 109267977 
 }

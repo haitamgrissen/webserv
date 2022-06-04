@@ -66,6 +66,11 @@ void                                    Conf::add_locations(Location c)
     this->locations.push_back(c);
 }
 
+void                                    Conf::add_cgi(Cgi c)
+{
+    this->cgis.push_back(c);
+}
+
 void                                    Conf::set_cgi(Cgi c)
 {
     this->cgi = c;

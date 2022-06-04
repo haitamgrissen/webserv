@@ -117,6 +117,11 @@ std::vector<Location>                   Conf::get_locations(void)
     return this->locations;
 }
 
+std::vector<Cgi>                   Conf::get_cgis(void)
+{
+    return this->cgis;
+}
+
 Cgi                                     Conf::get_cgi(void)
 {
     return this->cgi;

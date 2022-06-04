@@ -40,6 +40,7 @@ class Conf
         int                                 client_max_body_size;
         bool                                autoindex;
         std::vector<Location>               locations;
+        std::vector<Cgi>               cgis;
         Cgi                                 cgi;
         int                                 location_block;
         int                                 server_block;
@@ -68,6 +69,7 @@ class Conf
         bool                                    get_autoindex(void);
         std::vector<Location>                   get_locations(void);
         Cgi                                     get_cgi(void);
+        std::vector<Cgi>                        get_cgis(void);
         int                                     get_location_block(void);
         int                                     get_cgi_block(void);
         void                                    parse_server(std::vector <std::string> tokens);
@@ -97,6 +99,7 @@ class Conf
         void                                    show_server();
         void                                    show_servers();
         void                                    show_cgi();
+        void                                    add_cgi(Cgi c);
         ~Conf(void);
 };
 

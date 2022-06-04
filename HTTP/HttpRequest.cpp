@@ -121,15 +121,22 @@ void            HttpRequest::handle_regular_body(void)
 {
     std::ifstream   file_2("body.txt");
     std::fstream    result_file;
+    struct stat                 status;
     std::string     str;
+    size_t          body_size;
     std::string     file_type;
 
     file_type = this->get_file_type();
-    //std::cout << this->get_my_upload_path() << std::endl;
+    body_size = 0;
+    stat("body.txt", &status);
     result_file.open(this->get_my_upload_path() + "res" + file_type, std::ios::out);
-    std::cout << this->get_my_upload_path() + "res" + file_type << std::endl;
     while(getline(file_2, str))
-        result_file << str + "\n";
+    {
+        body_size += str.size() + 1;
+        result_file << str;
+        if (body_size < (size_t)status.st_size)
+            result_file << "\n";
+    }
     result_file.close();
     file_2.close();
 }

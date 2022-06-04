@@ -426,21 +426,64 @@ int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my
 	size_t			pos;
 	std::string extention;
 
+	int				indice = 0;
+	Cgi				my_cgi;
+
 	extention = "";
 	
-	pos = request_target.find(".php");
+	pos = request_target.find(".");
 	if (pos != std::string::npos)
-		extention = request_target.substr(pos);
+	{
+		std::cout << "hello\n";
+		size_t i = 0;
+		if (request_target.substr(pos, 3) == ".py")
+		{
+			
+			extention = ".py";
+			for(i=0;i < bd->_ok.get_server(_index).get_cgis().size();i++)
+			{
+				if (bd->_ok.get_server(_index).get_cgis()[i].get_cgi_block_path() == ".py")
+				{
+					my_cgi = bd->_ok.get_server(_index).get_cgis()[i];
+					pos = request_target.find(".py");
+					indice = i;
+					break;
+				}
+			}
+			if (i == bd->_ok.get_server(_index).get_cgis().size())
+				return 0;
+		}
+		else if (request_target.substr(pos,4) == ".php")
+		{
+			extention = ".php";
+			for(i=0;i < bd->_ok.get_server(_index).get_cgis().size();i++)
+			{
+				if (bd->_ok.get_server(_index).get_cgis()[i].get_cgi_block_path() == ".php")
+				{
+					my_cgi = bd->_ok.get_server(_index).get_cgis()[i];
+					pos = request_target.find(".php");
+					indice = i;
+					break ;
+				}
+			}
+			if (i == bd->_ok.get_server(_index).get_cgis().size())
+				return 0;
+		}
+		else
+			return 0;
+	}
 	else
 		return 0;
 
+	
+	
 	int cgi = 0;
 	int query;
-	query = extention.find('?');
+	query = request_target.find('?');
 
 
 	std::string querry;
-	std::string cgi_location =  bd->_ok.get_server(_index).get_cgi().get_cgi_path();
+	std::string cgi_location =  my_cgi.get_cgi_path();
 	std::string executable_script = request_target.substr(1);
 
 
@@ -448,8 +491,8 @@ int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my
 	int poss;
 	if (query != -1)
 	{
-		querry = extention.substr(query + 1);
-		extention = extention.substr(0,query);
+		querry = request_target.substr(query + 1);
+		//extention = extention.substr(0,query);
 
 		poss = request_target.find('?');
 		if (poss != -1)
@@ -457,7 +500,6 @@ int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my
 		else
 			executable_script = request_target;
 		//check if the exec-file exist
-		
 		if ((f_fd = open(executable_script.c_str(), O_RDWR)) < 0 && extention != "")
 			return 0;
 		else if ((f_fd = open(executable_script.c_str(), O_RDWR)) < 0)
@@ -478,8 +520,10 @@ int		Server::CGI_D_ayoub(_body * bd, std::string	request_target , std::string	my
 	}	
 		
 	close (f_fd);//close the file descripto of the check
+
+
 	//CGI IMPLEMENTATION
-	if (extention == ".php")
+	if (extention == ".php" || extention == ".py")
 	{
 		cgi = 1;
 		int fd = open("/tmp/test", O_RDWR | O_CREAT, 0777);
