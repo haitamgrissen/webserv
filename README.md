@@ -124,5 +124,4 @@ server {
 ## Testers
 - [webserv_tester](https://github.com/acoudert/webserv_tester) by [@acoudert](https://github.com/acoudert)
 - [webserv_tester](https://github.com/fredrikalindh/webserv_tester) by [@fredrikalindh](https://github.com/fredrikalindh)
-- 42 tester :)
 
